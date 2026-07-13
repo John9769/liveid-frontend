@@ -323,3 +323,11 @@ function SocialLink({ label, url }) {
     </div>
   );
 }
+function DetailRow({ label, value }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>{label}</span>
+      <span className="font-mono" style={{ fontSize: "0.82rem", color: "var(--ink)" }}>{value}</span>
+    </div>
+  );
+}
