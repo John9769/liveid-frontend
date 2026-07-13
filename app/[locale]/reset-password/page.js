@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { resetPassword } from "../../../../lib/api";
-import Navbar from "../../../../components/Navbar";
+import { resetPassword } from "../../../lib/api";
+import Navbar from "../../../components/Navbar";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
