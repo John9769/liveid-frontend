@@ -29,7 +29,6 @@ export default function DashboardVerifyPage() {
       <Navbar showLogin={false} />
       <main style={{ maxWidth: 480, margin: "0 auto", padding: "3rem 1.5rem" }}>
 
-        {/* Back */}
         <button
           onClick={() => router.push(`/${locale}/dashboard`)}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "2rem" }}
