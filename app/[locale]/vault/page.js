@@ -11,6 +11,7 @@ const TIER_ORDER = { VAULT: 0, VAULT_VARIANT: 1 };
 
 export default function VaultPage() {
   const locale = useLocale();
+  const router = useRouter();
   const [handles, setHandles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,6 +29,13 @@ export default function VaultPage() {
     <div>
       <Navbar showLogin />
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "4rem 1.5rem" }}>
+
+        <button
+          onClick={() => router.back()}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "2rem" }}
+        >
+          ← Back
+        </button>
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>

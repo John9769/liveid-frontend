@@ -71,6 +71,12 @@ export default function RenewalPage() {
     <div>
       <Navbar showLogin={false} />
       <main style={{ maxWidth: 480, margin: "0 auto", padding: "3rem 1.5rem" }}>
+        <button
+          onClick={() => router.push(`/${locale}/dashboard`)}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
+        >
+          ← Back to dashboard
+        </button>
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "0.5rem", color: "var(--ink)" }}>
           Annual Renewal
         </h1>

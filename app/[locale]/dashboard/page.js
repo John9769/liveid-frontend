@@ -204,7 +204,7 @@ export default function DashboardPage() {
           <ActionCard
             title="Verify a handle"
             desc="Check if someone is real"
-            href={`/${locale}`}
+            href={`/${locale}/dashboard/verify`}
           />
           <ActionCard
             title="The Vault"

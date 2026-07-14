@@ -101,6 +101,12 @@ export default function ProfilePage() {
     <div>
       <Navbar showLogin={false} />
       <main style={{ maxWidth: 560, margin: "0 auto", padding: "3rem 1.5rem" }}>
+        <button
+          onClick={() => router.push(`/${locale}/dashboard`)}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
+        >
+          ← Back to dashboard
+        </button>
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "2rem", color: "var(--ink)" }}>
           Edit Profile
         </h1>
