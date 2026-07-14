@@ -16,6 +16,18 @@ export default function RegisterPage() {
   const searchParams = useSearchParams();
   const handleName = searchParams.get("handle") || "";
 
+  // Read referral code from URL or cookie
+  const refFromUrl = searchParams.get("ref") || "";
+  const refFromCookie = typeof document !== "undefined"
+    ? document.cookie.split("; ").find((r) => r.startsWith("liveid_ref="))?.split("=")[1] || ""
+    : "";
+  const referralCode = refFromUrl || refFromCookie;
+
+  // Store in cookie if from URL — 30 days
+  if (refFromUrl && typeof document !== "undefined") {
+    document.cookie = `liveid_ref=${refFromUrl}; path=/; max-age=${30 * 24 * 60 * 60}`;
+  }
+
   const [form, setForm] = useState({ phone: "", email: "", password: "" });
   const [step, setStep] = useState(STEPS.FORM);
   const [error, setError] = useState(null);
@@ -105,6 +117,7 @@ export default function RegisterPage() {
         password: form.password,
         handleName,
         faceId: livenessResult.faceId,
+        referralCode: referralCode || null,
       });
 
       // Redirect to ToyyibPay
