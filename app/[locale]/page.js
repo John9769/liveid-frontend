@@ -72,7 +72,7 @@ export default function Home() {
               margin: "0 0 1.2rem",
             }}
           >
-            Scammers are everywhere.
+            Your Internet Identity.
           </h1>
 
           <p
@@ -86,8 +86,8 @@ export default function Home() {
               marginRight: "auto",
             }}
           >
-            <strong style={{ color: "var(--ink)" }}>Verified Human.</strong>{" "}
-            Own it before someone else does.
+            <strong style={{ color: "var(--ink)" }}>Verified. Trusted. Yours.</strong>{" "}
+            One link. Proves you are real.
           </p>
 
           <SearchBar />
@@ -280,13 +280,21 @@ export default function Home() {
             style={{
               fontSize: "1rem",
               color: "rgba(255,255,255,0.6)",
+              marginBottom: "0.75rem",
+              lineHeight: 1.6,
+            }}
+          >
+            Because anyone can pretend to be anyone online. No way to know who is real.
+          </p>
+          <p
+            style={{
+              fontSize: "1rem",
+              color: "rgba(255,255,255,0.8)",
               marginBottom: "2rem",
               lineHeight: 1.6,
             }}
           >
-            Every scammer hides behind a fake identity.
-            LiveID makes that impossible — one verified link proves you're real,
-            before anyone sends you a single ringgit.
+            LiveID changes that. One link. Click it. Know instantly you are dealing with a real human being. Not a bot. Not a scammer. A real person.
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
