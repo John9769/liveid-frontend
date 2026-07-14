@@ -68,6 +68,7 @@ export default function Home() {
               fontSize: "clamp(2.2rem, 5vw, 3.6rem)",
               fontWeight: 600,
               lineHeight: 1.1,
+              letterSpacing: "-0.03em",
               color: "var(--ink)",
               margin: "0 0 1.2rem",
             }}
