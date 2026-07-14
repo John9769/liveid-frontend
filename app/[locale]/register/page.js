@@ -23,8 +23,8 @@ export default function RegisterPage() {
     : "";
   const referralCode = refFromUrl || refFromCookie;
 
-  // Store in cookie if from URL — 30 days
-  if (refFromUrl && typeof document !== "undefined") {
+  // Store in cookie only if no existing ref — first click wins
+  if (refFromUrl && !refFromCookie && typeof document !== "undefined") {
     document.cookie = `liveid_ref=${refFromUrl}; path=/; max-age=${30 * 24 * 60 * 60}`;
   }
 
