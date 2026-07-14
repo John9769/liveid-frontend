@@ -113,6 +113,19 @@ export default function VerifyPage() {
               </div>
             )}
 
+            {result.isReferral && result.referralCode && (
+              <div style={{ border: "2px solid var(--trust-blue)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "center", background: "#F0F7FF" }}>
+                <p style={{ fontSize: "1rem", fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>
+                  Verify Yourself. Get Your LiveID.
+                </p>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: 16 }}>
+                  Join thousands of verified humans on LiveID.
+                </p>
+                
+                  <a href={`/en/register?ref=${result.referralCode}`} style={{ display: "inline-block", background: "var(--trust-blue)", color: "white", padding: "12px 28px", borderRadius: 8, fontWeight: 600, fontSize: "0.95rem", textDecoration: "none" }}>Get Your LiveID</a>
+              </div>
+            )}
+
             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", textAlign: "center" }}>
               Powered by LiveID — liveid.asia<br />AWAS Premium Resources (202603141446)
             </p>
