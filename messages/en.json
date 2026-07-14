@@ -1,10 +1,28 @@
 {
   "Home": {
-    "tagline": "Scammers are everywhere.",
-    "subtitle": "Verified Human. Own it before someone else does.",
+    "tagline": "Your Internet Identity.",
+    "subtitleBold": "Verified. Trusted. Yours.",
+    "subtitleRest": "One link. Proves you are real.",
     "searchPlaceholder": "Type the name you want",
     "searchButton": "Search",
     "checking": "Checking...",
-    "claim": "Claim"
+    "claim": "Claim",
+    "premiumLabel": "Premium handles",
+    "premiumHeading": "Grab these before someone else does.",
+    "howLabel": "How it works",
+    "howHeading": "Three steps. One verified link.",
+    "step01Title": "Search your name",
+    "step01Desc": "Type any name. See if it's still available.",
+    "step02Title": "Prove you're human",
+    "step02Desc": "A quick selfie. Takes 10 seconds. No IC needed.",
+    "step03Title": "Paste in your bio",
+    "step03Desc": "Share liveid.asia/yourname anywhere. One click tells the world you're real.",
+    "whyLabel": "Why it matters",
+    "whyStat": "Malaysians lost RM830 million to online scams in 2026.",
+    "whyBeat2": "Because anyone can pretend to be anyone online. No way to know who is real.",
+    "whyBeat3": "LiveID changes that. One link. Click it. Know instantly you are dealing with a real human being. Not a bot. Not a scammer. A real person.",
+    "whyCta": "Claim your handle now",
+    "footerLine1": "AWAS Premium Resources (202603141446)",
+    "footerLine2": "liveid.asia is a product of AWAS Premium Resources. All rights reserved."
   }
 }

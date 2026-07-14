@@ -1,10 +1,28 @@
 {
   "Home": {
-    "tagline": "Penipu ada di mana-mana.",
-    "subtitle": "Manusia Terverifikasi. Tuntut sebelum orang lain.",
+    "tagline": "Identiti Internet Anda.",
+    "subtitleBold": "Disahkan. Dipercayai. Milik Anda.",
+    "subtitleRest": "Satu pautan. Bukti anda nyata.",
     "searchPlaceholder": "Taip nama yang anda mahu",
     "searchButton": "Cari",
     "checking": "Menyemak...",
-    "claim": "Tuntut"
+    "claim": "Tuntut",
+    "premiumLabel": "Nama Tanganan Premium",
+    "premiumHeading": "Dapatkan sebelum orang lain.",
+    "howLabel": "Cara ia berfungsi",
+    "howHeading": "Tiga langkah. Satu pautan disahkan.",
+    "step01Title": "Cari nama anda",
+    "step01Desc": "Taip mana-mana nama. Lihat sama ada masih tersedia.",
+    "step02Title": "Buktikan anda manusia",
+    "step02Desc": "Selfie pantas. Ambil masa 10 saat. Tiada IC diperlukan.",
+    "step03Title": "Tampal dalam bio anda",
+    "step03Desc": "Kongsi liveid.asia/namaanda di mana-mana. Satu klik memberitahu dunia anda nyata.",
+    "whyLabel": "Mengapa ia penting",
+    "whyStat": "Rakyat Malaysia kehilangan RM830 juta akibat penipuan dalam talian pada 2026.",
+    "whyBeat2": "Kerana sesiapa sahaja boleh berpura-pura menjadi sesiapa dalam talian. Tiada cara untuk mengetahui siapa yang nyata.",
+    "whyBeat3": "LiveID mengubah itu. Satu pautan. Klik. Tahu serta-merta anda berurusan dengan manusia nyata. Bukan bot. Bukan penipu. Manusia sebenar.",
+    "whyCta": "Tuntut nama tanganan anda sekarang",
+    "footerLine1": "AWAS Premium Resources (202603141446)",
+    "footerLine2": "liveid.asia adalah produk AWAS Premium Resources. Hak cipta terpelihara."
   }
 }
