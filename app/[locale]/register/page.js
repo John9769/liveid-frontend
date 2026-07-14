@@ -2,10 +2,11 @@
 
 import { useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { verifyLiveness, startVerification } from "../../../lib/api";
+import { verifyLiveness, startVerification, searchHandle } from "../../../lib/api";
 import Navbar from "../../../components/Navbar";
 
 const STEPS = {
+  HANDLE: "HANDLE",
   FORM: "FORM",
   CAMERA: "CAMERA",
   PROCESSING: "PROCESSING",
@@ -14,7 +15,7 @@ const STEPS = {
 
 export default function RegisterPage() {
   const searchParams = useSearchParams();
-  const handleName = searchParams.get("handle") || "";
+  const handleFromUrl = searchParams.get("handle") || "";
 
   // Read referral code from URL or cookie
   const refFromUrl = searchParams.get("ref") || "";
@@ -28,13 +29,43 @@ export default function RegisterPage() {
     document.cookie = `liveid_ref=${refFromUrl}; path=/; max-age=${30 * 24 * 60 * 60}`;
   }
 
+  const [handleName, setHandleName] = useState(handleFromUrl);
+  const [handleQuery, setHandleQuery] = useState("");
+  const [handleResults, setHandleResults] = useState([]);
+  const [handleSearching, setHandleSearching] = useState(false);
+  const [handleError, setHandleError] = useState(null);
+
   const [form, setForm] = useState({ phone: "", email: "", password: "" });
-  const [step, setStep] = useState(STEPS.FORM);
+  const [step, setStep] = useState(handleFromUrl ? STEPS.FORM : STEPS.HANDLE);
   const [error, setError] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  async function handleSearch() {
+    if (!handleQuery.trim()) return;
+    setHandleSearching(true);
+    setHandleError(null);
+    setHandleResults([]);
+    try {
+      const data = await searchHandle(handleQuery.trim());
+      if (data.results?.length === 0) {
+        setHandleError("No handles found. Try a different name.");
+      } else {
+        setHandleResults(data.results || []);
+      }
+    } catch (err) {
+      setHandleError("Search failed. Please try again.");
+    } finally {
+      setHandleSearching(false);
+    }
+  }
+
+  function selectHandle(name) {
+    setHandleName(name);
+    setStep(STEPS.FORM);
+  }
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -56,12 +87,8 @@ export default function RegisterPage() {
     if (!validateForm()) return;
     setError(null);
     setStep(STEPS.CAMERA);
-
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -85,23 +112,14 @@ export default function RegisterPage() {
   const captureAndSubmit = useCallback(async () => {
     if (!videoRef.current || !cameraReady) return;
     setStep(STEPS.PROCESSING);
-
     try {
-      // Capture frame from video
       const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoRef.current, 0, 0);
-
+      canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
       stopCamera();
 
-      // Convert canvas to blob
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/jpeg", 0.92)
-      );
-
-      // Step 1 — verify liveness
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
       const livenessResult = await verifyLiveness(blob);
 
       if (livenessResult.result !== "real") {
@@ -110,7 +128,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 2 — register with faceId
       const regResult = await startVerification({
         phone: form.phone,
         email: form.email,
@@ -120,14 +137,13 @@ export default function RegisterPage() {
         referralCode: referralCode || null,
       });
 
-      // Redirect to ToyyibPay
       window.location.href = regResult.paymentUrl;
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
       setStep(STEPS.ERROR);
       stopCamera();
     }
-  }, [cameraReady, form, handleName]);
+  }, [cameraReady, form, handleName, referralCode]);
 
   function retryFromForm() {
     setError(null);
@@ -138,69 +154,108 @@ export default function RegisterPage() {
   return (
     <div>
       <Navbar />
-      <main
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "3rem 1.5rem",
-        }}
-      >
+      <main style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "3rem 1.5rem" }}>
         <div style={{ maxWidth: 420, width: "100%" }}>
 
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>
-            Claiming
-          </p>
-          <p
-            className="font-mono"
-            style={{ fontSize: "1.4rem", fontWeight: 500, marginBottom: "2rem", color: "var(--ink)" }}
-          >
-            {handleName}
-          </p>
+          {/* STEP 0 — PICK HANDLE */}
+          {step === STEPS.HANDLE && (
+            <div>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                Get Your LiveID
+              </h2>
+              <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
+                Choose your handle — this is your verified identity on LiveID.
+              </p>
+
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <input
+                  type="text"
+                  value={handleQuery}
+                  onChange={(e) => setHandleQuery(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder="Search a handle name"
+                  style={{ flex: 1, border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", fontSize: "1rem", outline: "none" }}
+                />
+                <button
+                  onClick={handleSearch}
+                  disabled={handleSearching}
+                  style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "10px 16px", borderRadius: 8, fontWeight: 500, fontSize: "0.9rem", cursor: "pointer" }}
+                >
+                  {handleSearching ? "…" : "Search"}
+                </button>
+              </div>
+
+              {handleError && <p style={{ color: "#B3261E", fontSize: "0.85rem", marginBottom: 12 }}>{handleError}</p>}
+
+              {handleResults.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {handleResults.map((h) => (
+                    <div
+                      key={h.handle}
+                      onClick={() => h.available && selectHandle(h.handle)}
+                      style={{
+                        border: "1px solid var(--border)",
+                        borderRadius: 10,
+                        padding: "12px 16px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        background: h.available ? "white" : "var(--mist)",
+                        cursor: h.available ? "pointer" : "default",
+                        opacity: h.available ? 1 : 0.6,
+                      }}
+                    >
+                      <div>
+                        <p className="font-mono" style={{ fontSize: "0.95rem", color: "var(--ink)", margin: 0 }}>
+                          liveid.asia/{h.handle}
+                        </p>
+                        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
+                          {h.available ? `RM ${h.price}` : "Taken"}
+                        </p>
+                      </div>
+                      {h.available && (
+                        <span style={{ fontSize: "0.78rem", color: "var(--trust-blue)", fontWeight: 600 }}>
+                          Select →
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* STEP 1 — FORM */}
           {step === STEPS.FORM && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <Field
-                label="Phone number"
-                value={form.phone}
-                onChange={(v) => updateField("phone", v)}
-                placeholder="60123456789"
-              />
-              <Field
-                label="Email"
-                value={form.email}
-                onChange={(v) => updateField("email", v)}
-                placeholder="you@example.com"
-                type="email"
-              />
-              <Field
-                label="Password"
-                value={form.password}
-                onChange={(v) => updateField("password", v)}
-                placeholder="At least 8 characters"
-                type="password"
-              />
+            <div>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>Claiming</p>
+              <p className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 500, marginBottom: "2rem", color: "var(--ink)" }}>
+                liveid.asia/{handleName}
+              </p>
 
-              {error && (
-                <p style={{ color: "#B3261E", fontSize: "0.9rem" }}>{error}</p>
-              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <Field label="Phone number" value={form.phone} onChange={(v) => updateField("phone", v)} placeholder="60123456789" />
+                <Field label="Email" value={form.email} onChange={(v) => updateField("email", v)} placeholder="you@example.com" type="email" />
+                <Field label="Password" value={form.password} onChange={(v) => updateField("password", v)} placeholder="At least 8 characters" type="password" />
 
-              <button
-                onClick={startCamera}
-                style={{
-                  border: "none",
-                  background: "var(--trust-blue)",
-                  color: "white",
-                  padding: "12px",
-                  borderRadius: 8,
-                  fontWeight: 500,
-                  fontSize: "1rem",
-                  marginTop: 8,
-                }}
-              >
-                Continue to face verification
-              </button>
+                {error && <p style={{ color: "#B3261E", fontSize: "0.9rem" }}>{error}</p>}
+
+                <button
+                  onClick={startCamera}
+                  style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "12px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", marginTop: 8, cursor: "pointer" }}
+                >
+                  Continue to face verification
+                </button>
+
+                {!handleFromUrl && (
+                  <button
+                    onClick={() => setStep(STEPS.HANDLE)}
+                    style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}
+                  >
+                    Change handle
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -210,56 +265,17 @@ export default function RegisterPage() {
               <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", textAlign: "center" }}>
                 Look directly at the camera and tap the button below
               </p>
-
-              <div
-                style={{
-                  width: "100%",
-                  maxWidth: 340,
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  border: "2px solid var(--stamp-teal)",
-                  background: "#000",
-                  aspectRatio: "3/4",
-                  position: "relative",
-                }}
-              >
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+              <div style={{ width: "100%", maxWidth: 340, borderRadius: 16, overflow: "hidden", border: "2px solid var(--stamp-teal)", background: "#000", aspectRatio: "3/4", position: "relative" }}>
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
-
               <button
                 onClick={captureAndSubmit}
                 disabled={!cameraReady}
-                style={{
-                  border: "none",
-                  background: "var(--stamp-teal)",
-                  color: "white",
-                  padding: "14px 32px",
-                  borderRadius: 8,
-                  fontWeight: 500,
-                  fontSize: "1rem",
-                  width: "100%",
-                  maxWidth: 340,
-                }}
+                style={{ border: "none", background: "var(--stamp-teal)", color: "white", padding: "14px 32px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", width: "100%", maxWidth: 340, cursor: "pointer" }}
               >
                 Take selfie and verify
               </button>
-
-              <button
-                onClick={retryFromForm}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "var(--text-muted)",
-                  fontSize: "0.9rem",
-                  textDecoration: "underline",
-                }}
-              >
+              <button onClick={retryFromForm} style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}>
                 Go back
               </button>
             </div>
@@ -268,37 +284,24 @@ export default function RegisterPage() {
           {/* STEP 3 — PROCESSING */}
           {step === STEPS.PROCESSING && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>
-                Verifying your identity…
-              </p>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: 8 }}>
-                This takes a few seconds
-              </p>
+              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>Verifying your identity…</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: 8 }}>This takes a few seconds</p>
             </div>
           )}
 
           {/* STEP 4 — ERROR */}
           {step === STEPS.ERROR && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <p style={{ color: "#B3261E", fontSize: "0.95rem", marginBottom: 20 }}>
-                {error}
-              </p>
+              <p style={{ color: "#B3261E", fontSize: "0.95rem", marginBottom: 20 }}>{error}</p>
               <button
                 onClick={retryFromForm}
-                style={{
-                  border: "none",
-                  background: "var(--trust-blue)",
-                  color: "white",
-                  padding: "12px 24px",
-                  borderRadius: 8,
-                  fontWeight: 500,
-                  fontSize: "1rem",
-                }}
+                style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "12px 24px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", cursor: "pointer" }}
               >
                 Try again
               </button>
             </div>
           )}
+
         </div>
       </main>
     </div>
@@ -314,13 +317,7 @@ function Field({ label, value, onChange, placeholder, type = "text" }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          border: "1px solid var(--border)",
-          borderRadius: 8,
-          padding: "10px 12px",
-          fontSize: "1rem",
-          outline: "none",
-        }}
+        style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", fontSize: "1rem", outline: "none" }}
       />
     </label>
   );
