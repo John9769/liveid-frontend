@@ -7,7 +7,7 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/:handle((?!en|bm|api|_next|admin|invite|favicon.ico).*)',
+        source: '/:handle((?!en$|bm$|admin|invite|api|_next|favicon)[a-z0-9_]+)',
         destination: '/en/verify/:handle',
         permanent: false,
       },
