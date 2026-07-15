@@ -5,7 +5,15 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
-import { getUserProfile, getFullProfile, getMyReferralDashboard } from "../../../lib/api";
+import {
+  getUserProfile,
+  getFullProfile,
+  getMyReferralDashboard,
+  getStoredUser,
+  clearSession,
+} from "../../../lib/api";
+
+const money = (n) => `RM ${Number(n || 0).toFixed(2)}`;
 
 export default function DashboardPage() {
   const locale = useLocale();
@@ -14,50 +22,59 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("liveid");
-  const [referralData, setReferralData] = useState(null);
-  const [referralLoading, setReferralLoading] = useState(false);
+  const [refData, setRefData] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("liveid_user");
-    if (!stored || stored === "undefined" || stored === "null") {
-      router.push(`/${locale}/login`);
-      return;
-    }
+    let cancelled = false;
 
-    let parsedUser;
-    try {
-      parsedUser = JSON.parse(stored);
-    } catch (e) {
-      localStorage.removeItem("liveid_user");
-      router.push(`/${locale}/login`);
-      return;
-    }
-    setUser(parsedUser);
-
-    Promise.all([
-      getUserProfile(parsedUser.id),
-      getFullProfile(parsedUser.id),
-    ])
-      .then(([userdata, profileData]) => {
-        setUser(userdata);
-        setProfile(profileData.profile);
-
-        // Check if user is a referral
-        if (userdata.email) {
-          getMyReferralDashboard(userdata.email)
-            .then((data) => setReferralData(data))
-            .catch(() => setReferralData(null));
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem("liveid_user");
+    async function load() {
+      const stored = getStoredUser();
+      if (!stored?.id) {
+        clearSession();
         router.push(`/${locale}/login`);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+        return;
+      }
+
+      setUser(stored);
+
+      try {
+        const userdata = await getUserProfile(stored.id);
+        if (cancelled) return;
+        setUser(userdata);
+
+        try {
+          const profileData = await getFullProfile(stored.id);
+          if (!cancelled) setProfile(profileData.profile);
+        } catch (err) {
+          if (err.isAuthError) throw err;
+          if (!cancelled) setProfile(null);
+        }
+
+        // Most users are not referrals — a 404 here is normal
+        if (userdata.email) {
+          try {
+            const data = await getMyReferralDashboard(userdata.email);
+            if (!cancelled) setRefData(data);
+          } catch {
+            if (!cancelled) setRefData(null);
+          }
+        }
+      } catch {
+        if (cancelled) return;
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      if (!cancelled) setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [locale, router]);
 
   function handleLogout() {
-    localStorage.removeItem("liveid_user");
+    clearSession();
     router.push(`/${locale}`);
   }
 
@@ -76,6 +93,12 @@ export default function DashboardPage() {
   const expiryDate = user?.registrationExpiry
     ? new Date(user.registrationExpiry).toLocaleDateString("en-MY", { day: "numeric", month: "long", year: "numeric" })
     : null;
+
+  // A referral has a direct block, a super referral has an override block.
+  // Nana, promoted, has both.
+  const direct = refData?.direct || null;
+  const override = refData?.override || null;
+  const hasEarnings = !!(direct || override);
 
   return (
     <div>
@@ -98,28 +121,21 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Tabs — only show if user is a referral */}
-        {referralData && (
+        {/* Tabs — only for referrals and super referrals */}
+        {hasEarnings && (
           <div style={{ display: "flex", gap: 0, marginBottom: "1.5rem", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
-            <button
-              onClick={() => setActiveTab("liveid")}
-              style={{ flex: 1, padding: "10px", fontSize: "0.88rem", fontWeight: activeTab === "liveid" ? 700 : 400, background: activeTab === "liveid" ? "var(--trust-blue)" : "white", color: activeTab === "liveid" ? "white" : "var(--text-muted)", border: "none", cursor: "pointer" }}
-            >
+            <TabButton active={activeTab === "liveid"} onClick={() => setActiveTab("liveid")}>
               My LiveID
-            </button>
-            <button
-              onClick={() => setActiveTab("earnings")}
-              style={{ flex: 1, padding: "10px", fontSize: "0.88rem", fontWeight: activeTab === "earnings" ? 700 : 400, background: activeTab === "earnings" ? "var(--trust-blue)" : "white", color: activeTab === "earnings" ? "white" : "var(--text-muted)", border: "none", cursor: "pointer" }}
-            >
+            </TabButton>
+            <TabButton active={activeTab === "earnings"} onClick={() => setActiveTab("earnings")}>
               My Earnings
-            </button>
+            </TabButton>
           </div>
         )}
 
-        {/* TAB 1 — MY LIVEID */}
+        {/* ============ TAB 1 — MY LIVEID ============ */}
         {activeTab === "liveid" && (
           <div>
-            {/* Status card */}
             <div style={{ border: `1px solid ${isExpired ? "#B3261E" : "var(--border)"}`, borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", background: isExpired ? "#FFF5F5" : "var(--mist)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
@@ -136,13 +152,19 @@ export default function DashboardPage() {
                 </div>
               </div>
               {isExpired && (
-                <Link href={`/${locale}/dashboard/renewal`} style={{ display: "block", marginTop: "1rem", background: "var(--trust-blue)", color: "white", padding: "10px 16px", borderRadius: 8, textAlign: "center", fontWeight: 500, fontSize: "0.9rem" }}>
-                  Renew now
-                </Link>
+                <>
+                  <p style={{ fontSize: "0.8rem", color: "#B3261E", marginTop: 12, lineHeight: 1.6 }}>
+                    Anyone clicking your link now sees an Expired notice. Your handle is still
+                    yours — renew to restore your verification.
+                  </p>
+                  <Link href={`/${locale}/dashboard/renewal`} style={{ display: "block", marginTop: "1rem", background: "var(--trust-blue)", color: "white", padding: "10px 16px", borderRadius: 8, textAlign: "center", fontWeight: 500, fontSize: "0.9rem" }}>
+                    Renew now
+                  </Link>
+                </>
               )}
             </div>
 
-            {/* Tier badge */}
+            {/* Tier */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>Tier</p>
@@ -159,7 +181,7 @@ export default function DashboardPage() {
 
             {/* Quick actions */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1.5rem" }}>
-              <ActionCard title="Edit Profile" desc="Photo, bio, social links" href={`/${locale}/dashboard/profile`} />
+              <ActionCard title="Edit Profile" desc="Bio, city, social links" href={`/${locale}/dashboard/profile`} />
               <ActionCard title="Renewal" desc="Manage your subscription" href={`/${locale}/dashboard/renewal`} />
               <ActionCard title="Verify a handle" desc="Check if someone is real" href={`/${locale}/dashboard/verify`} />
               <ActionCard title="The Vault" desc="Browse premium handles" href={`/${locale}/vault`} />
@@ -171,94 +193,178 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* TAB 2 — MY EARNINGS */}
-        {activeTab === "earnings" && referralData && (
+        {/* ============ TAB 2 — MY EARNINGS ============ */}
+        {activeTab === "earnings" && hasEarnings && (
           <div>
-            {/* Referral code */}
-            <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem" }}>
-              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Your Referral Code</p>
-              <p className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--trust-blue)" }}>
-                {referralData.referral.code}
-              </p>
-              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: 4 }}>
-                Share: liveid.asia/register?ref={referralData.referral.code}
-              </p>
-            </div>
 
-            {/* Stats grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1.5rem" }}>
-              <StatBox label="Total Registrations" value={referralData.totalRegistrations} />
-              <StatBox label="Total Earned" value={`RM ${referralData.referral.totalEarnings.toFixed(2)}`} color="var(--stamp-teal)" />
-              <StatBox label="Paid Out" value={`RM ${referralData.referral.totalPaid.toFixed(2)}`} />
-              <StatBox label="Pending Payout" value={`RM ${referralData.unpaidDirect.toFixed(2)}`} color={referralData.unpaidDirect > 0 ? "#F59E0B" : "var(--text-muted)"} />
-            </div>
+            {/* ---- DIRECT — only for a referral with a code ---- */}
+            {direct && (
+              <div style={{ marginBottom: "2rem" }}>
+                <SectionTitle>Direct Earnings</SectionTitle>
 
-            {/* Super Referral override earnings */}
-            {referralData.referral.isSuperReferral && (
-              <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem" }}>
-                <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-                  Override Earnings — Super Referral
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <StatBox label="Override Earned" value={`RM ${referralData.referral.totalOverrideEarnings.toFixed(2)}`} color="var(--trust-blue)" />
-                  <StatBox label="Override Pending" value={`RM ${referralData.unpaidOverride.toFixed(2)}`} color={referralData.unpaidOverride > 0 ? "#F59E0B" : "var(--text-muted)"} />
+                {refData.referral.code && (
+                  <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1rem" }}>
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                      Your Referral Code
+                    </p>
+                    <p className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--trust-blue)", margin: 0 }}>
+                      {refData.referral.code}
+                    </p>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: 6, wordBreak: "break-all" }}>
+                      Share: liveid.asia/{locale}/register?ref={refData.referral.code}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1rem" }}>
+                  <StatBox label="Registrations" value={direct.totalRegistrations ?? 0} />
+                  <StatBox label="Total Earned" value={money(direct.totalEarnings)} color="var(--stamp-teal)" />
+                  <StatBox label="Paid Out" value={money(direct.totalPaid)} />
+                  <StatBox label="Pending Payout" value={money(direct.unpaid)} color={direct.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
                 </div>
 
-                {/* Sub referrals */}
-                {referralData.referral.subReferrals?.length > 0 && (
-                  <div style={{ marginTop: "1rem" }}>
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: 8 }}>Your recruited referrals:</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {referralData.referral.subReferrals.map((sub) => (
-                        <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "var(--mist)", borderRadius: 8 }}>
+                <EarningsList
+                  title="Recent Direct Earnings"
+                  rows={direct.earnings}
+                  amountOf={(e) => e.amount}
+                  paidOf={(e) => e.isPaid}
+                  emptyText="No direct earnings yet. Share your referral link to start earning."
+                />
+              </div>
+            )}
+
+            {/* ---- OVERRIDE — only for a super referral ---- */}
+            {override && (
+              <div>
+                <SectionTitle>Override Earnings — Super Referral</SectionTitle>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1rem" }}>
+                  <StatBox label="My Referrals" value={override.subReferralCount ?? 0} />
+                  <StatBox label="Override Earned" value={money(override.totalEarnings)} color="var(--trust-blue)" />
+                  <StatBox label="Paid Out" value={money(override.totalPaid)} />
+                  <StatBox label="Pending Payout" value={money(override.unpaid)} color={override.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
+                </div>
+
+                {/* Recruits — their income is private, only my override shows */}
+                {override.subReferrals?.length > 0 ? (
+                  <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: "1rem" }}>
+                    <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)", margin: 0 }}>
+                      My Referrals
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      {override.subReferrals.map((sub, i) => (
+                        <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 1.25rem", borderBottom: i < override.subReferrals.length - 1 ? "1px solid var(--border)" : "none" }}>
                           <div>
-                            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>{sub.name}</p>
-                            <p className="font-mono" style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>{sub.code}</p>
+                            <p style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>{sub.name}</p>
+                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
+                              {sub.salesCount} sale{sub.salesCount === 1 ? "" : "s"}
+                              {" · "}
+                              <span style={{ color: sub.isActive ? "var(--stamp-teal)" : "#B3261E" }}>
+                                {sub.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </p>
                           </div>
                           <div style={{ textAlign: "right" }}>
-                            <p style={{ fontSize: "0.82rem", color: "var(--stamp-teal)", fontWeight: 600, margin: 0 }}>RM {sub.totalEarnings?.toFixed(2)}</p>
-                            <p style={{ fontSize: "0.72rem", color: sub.isActive ? "var(--stamp-teal)" : "#B3261E", margin: 0 }}>{sub.isActive ? "Active" : "Inactive"}</p>
+                            <p style={{ fontSize: "0.9rem", color: "var(--trust-blue)", fontWeight: 700, margin: 0 }}>
+                              {money(sub.myOverrideFromThem)}
+                            </p>
+                            <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: 0 }}>my override</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.88rem", padding: "1.5rem 0" }}>
+                    No referrals under you yet.
+                  </p>
                 )}
+
+                <EarningsList
+                  title="Recent Override Earnings"
+                  rows={override.earnings}
+                  amountOf={(e) => e.overrideAmount}
+                  paidOf={(e) => e.overrideIsPaid}
+                  emptyText="No override earnings yet."
+                />
               </div>
             )}
 
-            {/* Recent earnings */}
-            {referralData.referral.earnings?.length > 0 && (
-              <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: "1.5rem" }}>
-                <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)", margin: 0 }}>
-                  Recent Earnings
-                </p>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  {referralData.referral.earnings.map((e, i) => (
-                    <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 1.25rem", borderBottom: i < referralData.referral.earnings.length - 1 ? "1px solid var(--border)" : "none" }}>
-                      <div>
-                        <p style={{ fontSize: "0.82rem", color: "var(--ink)", margin: 0 }}>{e.type.replace(/_/g, " ")}</p>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>{new Date(e.createdAt).toLocaleDateString("en-MY")}</p>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <p style={{ fontSize: "0.88rem", color: "var(--stamp-teal)", fontWeight: 600, margin: 0 }}>RM {e.amount.toFixed(2)}</p>
-                        <p style={{ fontSize: "0.72rem", color: e.isPaid ? "var(--stamp-teal)" : "#F59E0B", margin: 0 }}>{e.isPaid ? "Paid" : "Pending"}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {referralData.referral.earnings?.length === 0 && (
-              <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.88rem" }}>
-                No earnings yet. Share your referral link to start earning.
-              </p>
-            )}
           </div>
         )}
 
       </main>
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: "10px",
+        fontSize: "0.88rem",
+        fontWeight: active ? 700 : 400,
+        background: active ? "var(--trust-blue)" : "white",
+        color: active ? "white" : "var(--text-muted)",
+        border: "none",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SectionTitle({ children }) {
+  return (
+    <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+      {children}
+    </p>
+  );
+}
+
+function EarningsList({ title, rows, amountOf, paidOf, emptyText }) {
+  if (!rows || rows.length === 0) {
+    return (
+      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem", padding: "1rem 0" }}>
+        {emptyText}
+      </p>
+    );
+  }
+
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+      <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)", margin: 0 }}>
+        {title}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {rows.map((e, i) => {
+          const paid = paidOf(e);
+          return (
+            <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 1.25rem", borderBottom: i < rows.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <div>
+                <p style={{ fontSize: "0.82rem", color: "var(--ink)", margin: 0 }}>
+                  {e.type?.replace(/_/g, " ")}
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
+                  {new Date(e.createdAt).toLocaleDateString("en-MY")}
+                </p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <p style={{ fontSize: "0.88rem", color: "var(--stamp-teal)", fontWeight: 600, margin: 0 }}>
+                  {money(amountOf(e))}
+                </p>
+                <p style={{ fontSize: "0.72rem", color: paid ? "var(--stamp-teal)" : "#F59E0B", margin: 0 }}>
+                  {paid ? "Paid" : "Pending"}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { getFullProfile, updateProfile, deleteAccount } from "../../../../lib/api";
+import {
+  getFullProfile,
+  updateProfile,
+  deleteAccount,
+  getStoredUser,
+  clearSession,
+} from "../../../../lib/api";
 
 export default function ProfilePage() {
   const locale = useLocale();
@@ -32,18 +38,27 @@ export default function ProfilePage() {
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("liveid_user");
-    if (!stored) { router.push(`/${locale}/login`); return; }
-    const user = JSON.parse(stored);
-    setUserId(user.id);
-    setHandle(user.activeHandle || "");
+    let cancelled = false;
 
-    getFullProfile(user.id)
-      .then((data) => {
+    async function load() {
+      const user = getStoredUser();
+      if (!user?.id) {
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      setUserId(user.id);
+      setHandle(user.activeHandle || "");
+
+      try {
+        const data = await getFullProfile(user.id);
+        if (cancelled) return;
         const p = data.profile || {};
         setPhotoUrl(p.photoUrl || null);
         setForm({
@@ -59,10 +74,23 @@ export default function ProfilePage() {
           whatsapp: p.whatsapp || "",
           website: p.website || "",
         });
-      })
-      .catch(() => router.push(`/${locale}/login`))
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (err) {
+        if (cancelled) return;
+        if (err.isAuthError) {
+          clearSession();
+          router.push(`/${locale}/login`);
+          return;
+        }
+        // A missing profile is not fatal — let the user create one
+        setError(null);
+      }
+
+      if (!cancelled) setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [locale, router]);
 
   async function handleSave() {
     setSaving(true);
@@ -72,6 +100,11 @@ export default function ProfilePage() {
       await updateProfile(userId, form);
       setSuccess(true);
     } catch (err) {
+      if (err.isAuthError) {
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
       setError(err.message || "Failed to save profile.");
     } finally {
       setSaving(false);
@@ -83,16 +116,28 @@ export default function ProfilePage() {
       setDeleteError("Please type DELETE to confirm.");
       return;
     }
+    if (!deletePassword) {
+      setDeleteError("Enter your password to confirm.");
+      return;
+    }
+
     setDeleting(true);
     setDeleteError(null);
     try {
-      await deleteAccount(userId, "DELETE");
-      localStorage.removeItem("liveid_user");
+      await deleteAccount(userId, "DELETE", deletePassword);
+      clearSession();
       router.push(`/${locale}`);
     } catch (err) {
       setDeleteError(err.message || "Failed to delete account.");
       setDeleting(false);
     }
+  }
+
+  function closeDeleteModal() {
+    setShowDeleteModal(false);
+    setDeleteInput("");
+    setDeletePassword("");
+    setDeleteError(null);
   }
 
   if (loading) return (
@@ -121,8 +166,8 @@ export default function ProfilePage() {
           <div style={{
             width: 64, height: 64, borderRadius: "50%",
             backgroundImage: photoUrl ? `url(${photoUrl})` : "none",
+            backgroundColor: photoUrl ? "transparent" : "var(--border)",
             backgroundSize: "cover", backgroundPosition: "center",
-            background: photoUrl ? undefined : "var(--border)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "1.5rem", flexShrink: 0, border: "2px solid var(--border)",
           }}>
@@ -214,7 +259,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          style={{ width: "100%", background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, padding: "12px", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", marginTop: 8 }}
+          style={{ width: "100%", background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, padding: "12px", fontSize: "0.95rem", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", marginTop: 8, opacity: saving ? 0.7 : 1 }}
         >
           {saving ? "Saving…" : "Save profile"}
         </button>
@@ -243,6 +288,7 @@ export default function ProfilePage() {
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 16 }}>
                 You are about to permanently delete your LiveID account. Your handle <strong>liveid.asia/{handle}</strong> will be retired forever. This cannot be undone.
               </p>
+
               <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
                 Type <strong>DELETE</strong> to confirm:
               </p>
@@ -253,18 +299,42 @@ export default function ProfilePage() {
                 placeholder="Type DELETE here"
                 style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
               />
+
+              <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
+                Enter your password:
+              </p>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Your password"
+                style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+              />
+
               {deleteError && <p style={{ color: "#B3261E", fontSize: "0.82rem", marginBottom: 12 }}>{deleteError}</p>}
+
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => { setShowDeleteModal(false); setDeleteInput(""); setDeleteError(null); }}
+                  onClick={closeDeleteModal}
+                  disabled={deleting}
                   style={{ flex: 1, padding: "10px", background: "white", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.88rem", cursor: "pointer", color: "var(--text-muted)" }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteAccount}
-                  disabled={deleting || deleteInput !== "DELETE"}
-                  style={{ flex: 1, padding: "10px", background: deleteInput === "DELETE" ? "#B3261E" : "var(--border)", color: "white", border: "none", borderRadius: 8, fontSize: "0.88rem", fontWeight: 600, cursor: deleteInput === "DELETE" ? "pointer" : "not-allowed" }}
+                  disabled={deleting || deleteInput !== "DELETE" || !deletePassword}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    background: (deleteInput === "DELETE" && deletePassword) ? "#B3261E" : "var(--border)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 8,
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                    cursor: (deleteInput === "DELETE" && deletePassword) ? "pointer" : "not-allowed",
+                  }}
                 >
                   {deleting ? "Deleting…" : "Confirm Delete"}
                 </button>

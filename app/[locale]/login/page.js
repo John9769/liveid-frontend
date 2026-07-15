@@ -29,18 +29,16 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
+      // loginUser saves the token and user to localStorage on success
       const data = await loginUser({ phone: form.phone, password: form.password });
 
-      // Backend returns the user object FLAT — not wrapped in data.user
-      if (!data || !data.id) {
+      if (!data?.token || !data?.user) {
         throw new Error("Login failed — unexpected response from server.");
       }
 
-      localStorage.setItem("liveid_user", JSON.stringify(data));
       router.push(`/${locale}/dashboard`);
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -101,7 +99,8 @@ export default function LoginPage() {
                 fontWeight: 500,
                 fontSize: "1rem",
                 marginTop: 8,
-                cursor: "pointer",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.7 : 1,
               }}
             >
               {loading ? "Logging in…" : "Log in"}
@@ -125,8 +124,8 @@ export default function LoginPage() {
               color: "var(--text-muted)",
             }}
           >
-            Don't have a LiveID?{" "}
-            <Link href={`/${locale}`} style={{ color: "var(--trust-blue)" }}>
+            Don&apos;t have a LiveID?{" "}
+            <Link href={`/${locale}/register`} style={{ color: "var(--trust-blue)" }}>
               Claim your handle
             </Link>
           </p>

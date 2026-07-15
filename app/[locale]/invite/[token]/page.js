@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import Navbar from "../../../../components/Navbar";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
+import { getInvitation, acceptInvitation, verifyLiveness } from "../../../../lib/api";
 
 export default function InvitePage() {
   const { token } = useParams();
@@ -13,45 +12,74 @@ export default function InvitePage() {
   const router = useRouter();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
   const [invitation, setInvitation] = useState(null);
   const [step, setStep] = useState("loading"); // loading | info | camera | password | submitting | done | error
   const [errorMsg, setErrorMsg] = useState("");
   const [faceId, setFaceId] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [cameraReady, setCameraReady] = useState(false);
   const [capturing, setCapturing] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/api/invites/${token}`)
-      .then((r) => r.json())
+    let cancelled = false;
+
+    getInvitation(token)
       .then((data) => {
-        if (data.error) { setErrorMsg(data.error); setStep("error"); return; }
+        if (cancelled) return;
         setInvitation(data);
         setStep("info");
       })
-      .catch(() => { setErrorMsg("Could not load invitation."); setStep("error"); });
+      .catch((err) => {
+        if (cancelled) return;
+        setErrorMsg(err.message || "Could not load invitation.");
+        setStep("error");
+      });
+
+    return () => { cancelled = true; };
   }, [token]);
+
+  // Always release the camera when this page unmounts
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
 
   async function startCamera() {
     setStep("camera");
     setCameraError(null);
+    setErrorMsg("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setCameraReady(true);
+      }
     } catch (err) {
       setCameraError("Could not access camera. Please allow camera access and try again.");
+      setCameraReady(false);
     }
   }
 
   function stopCamera() {
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach((t) => t.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
+    setCameraReady(false);
   }
 
   async function captureAndVerify() {
+    if (!videoRef.current || !cameraReady) return;
     setCapturing(true);
     setErrorMsg("");
     try {
@@ -61,22 +89,15 @@ export default function InvitePage() {
       canvas.height = video.videoHeight;
       canvas.getContext("2d").drawImage(video, 0, 0);
 
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
-      const formData = new FormData();
-      formData.append("photo", blob, "selfie.jpg");
-
-      const res = await fetch(`${API}/api/auth/verify-liveness`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Liveness check failed");
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      const data = await verifyLiveness(blob);
 
       setFaceId(data.faceId);
+      setPhotoUrl(data.photoUrl || null);
       stopCamera();
       setStep("password");
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || "Liveness check failed.");
     } finally {
       setCapturing(false);
     }
@@ -91,21 +112,19 @@ export default function InvitePage() {
       setErrorMsg("Passwords do not match.");
       return;
     }
+    if (!faceId) {
+      setErrorMsg("Liveness check missing. Please start again.");
+      return;
+    }
 
     setStep("submitting");
     setErrorMsg("");
 
     try {
-      const res = await fetch(`${API}/api/invites/${token}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ faceId, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to complete onboarding");
+      await acceptInvitation({ token, faceId, password, photoUrl });
       setStep("done");
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || "Failed to complete onboarding.");
       setStep("password");
     }
   }
@@ -141,26 +160,54 @@ export default function InvitePage() {
               <p style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
                 Your reserved handle:
               </p>
-              <p style={{ fontFamily: "monospace", fontSize: "1.2rem", fontWeight: 700, color: "var(--trust-blue)", marginTop: 4 }}>
+              <p className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--trust-blue)", marginTop: 4 }}>
                 liveid.asia/{invitation.handle}
               </p>
             </div>
 
             <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.7 }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.7, margin: 0 }}>
                 To complete your onboarding you will need to:
-                <br />1. Pass a quick <strong>liveness check</strong> — your face, on your device
+                <br />1. Take a <strong>selfie</strong> — your face, on your device
                 <br />2. Set your <strong>password</strong>
                 <br /><br />
                 This link expires on <strong>{new Date(invitation.expiresAt).toLocaleDateString("en-MY", { day: "numeric", month: "long", year: "numeric" })}</strong>.
               </p>
             </div>
 
+            {/* Consent — same standard as paid registration */}
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: "1.25rem" }}>
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                style={{ marginTop: 3, flexShrink: 0 }}
+              />
+              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                I agree to LiveID&apos;s{" "}
+                <a href={`/${locale}/terms`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Terms &amp; Conditions</a>
+                {" "}and{" "}
+                <a href={`/${locale}/privacy`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Privacy Policy</a>
+                . I consent to LiveID collecting and storing my selfie photograph for identity verification purposes.
+              </span>
+            </label>
+
             <button
               onClick={startCamera}
-              style={{ width: "100%", padding: "14px", background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, fontSize: "1rem", fontWeight: 600, cursor: "pointer" }}
+              disabled={!agreed}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: agreed ? "var(--trust-blue)" : "var(--border)",
+                color: "white",
+                border: "none",
+                borderRadius: 8,
+                fontSize: "1rem",
+                fontWeight: 600,
+                cursor: agreed ? "pointer" : "not-allowed",
+              }}
             >
-              Start Liveness Check
+              Take my selfie
             </button>
           </div>
         )}
@@ -169,8 +216,15 @@ export default function InvitePage() {
         {step === "camera" && (
           <div>
             <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)", marginBottom: "1rem", textAlign: "center" }}>
-              Liveness Check
+              Take your selfie
             </h2>
+
+            <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 8, padding: "10px 14px", marginBottom: "1rem" }}>
+              <p style={{ fontSize: "0.82rem", color: "#92400E", margin: 0, textAlign: "center" }}>
+                📸 This selfie will be your <strong>permanent LiveID profile photo</strong>. It cannot be changed later.
+              </p>
+            </div>
+
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "center", marginBottom: "1rem" }}>
               Look directly at the camera, ensure good lighting, then tap Capture.
             </p>
@@ -188,10 +242,27 @@ export default function InvitePage() {
 
             <button
               onClick={captureAndVerify}
-              disabled={capturing || !!cameraError}
-              style={{ width: "100%", padding: "14px", background: "var(--stamp-teal)", color: "white", border: "none", borderRadius: 8, fontSize: "1rem", fontWeight: 600, cursor: "pointer" }}
+              disabled={capturing || !!cameraError || !cameraReady}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: (capturing || cameraError || !cameraReady) ? "var(--border)" : "var(--stamp-teal)",
+                color: "white",
+                border: "none",
+                borderRadius: 8,
+                fontSize: "1rem",
+                fontWeight: 600,
+                cursor: (capturing || cameraError || !cameraReady) ? "not-allowed" : "pointer",
+              }}
             >
-              {capturing ? "Verifying…" : "Capture & Verify"}
+              {capturing ? "Uploading…" : "Capture & Continue"}
+            </button>
+
+            <button
+              onClick={() => { stopCamera(); setStep("info"); }}
+              style={{ width: "100%", marginTop: 12, border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}
+            >
+              Go back
             </button>
           </div>
         )}
@@ -201,7 +272,7 @@ export default function InvitePage() {
           <div>
             <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
               <p style={{ fontSize: "1.5rem" }}>✅</p>
-              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>Liveness Verified</h2>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>Selfie captured</h2>
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Now set your password to complete onboarding.</p>
             </div>
 
@@ -254,7 +325,7 @@ export default function InvitePage() {
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: 1.7, marginBottom: "1.5rem" }}>
               Your LiveID account has been created. Your handle <strong>liveid.asia/{invitation?.handle}</strong> is reserved.
               <br /><br />
-              Your account is pending admin activation. You will be notified once it is live.
+              Your referral account is pending admin activation. You will be notified once it is live.
             </p>
             <button
               onClick={() => router.push(`/${locale}/login`)}

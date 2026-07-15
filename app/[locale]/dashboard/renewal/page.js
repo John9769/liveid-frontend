@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../../components/Navbar";
-import { getUserProfile, initiateRenewal, initiateVaultRenewal, initiatePremiumRenewal } from "../../../../lib/api";
+import {
+  getUserProfile,
+  initiateRenewal,
+  initiateVaultRenewal,
+  initiatePremiumRenewal,
+  getStoredUser,
+  clearSession,
+} from "../../../../lib/api";
 
 export default function RenewalPage() {
   const locale = useLocale();
@@ -15,15 +22,32 @@ export default function RenewalPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("liveid_user");
-    if (!stored) { router.push(`/${locale}/login`); return; }
+    let cancelled = false;
 
-    const parsedUser = JSON.parse(stored);
-    getUserProfile(parsedUser.id)
-      .then((data) => setUser(data))
-      .catch(() => router.push(`/${locale}/login`))
-      .finally(() => setLoading(false));
-  }, []);
+    async function load() {
+      const stored = getStoredUser();
+      if (!stored?.id) {
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      try {
+        const data = await getUserProfile(stored.id);
+        if (!cancelled) setUser(data);
+      } catch (err) {
+        if (cancelled) return;
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      if (!cancelled) setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [locale, router]);
 
   async function handleRenew() {
     if (!user) return;
@@ -39,15 +63,26 @@ export default function RenewalPage() {
       } else {
         data = await initiateRenewal(user.id);
       }
+
+      if (!data?.paymentUrl) {
+        throw new Error("Could not start payment. Please try again.");
+      }
+
       window.location.href = data.paymentUrl;
     } catch (err) {
+      if (err.isAuthError) {
+        clearSession();
+        router.push(`/${locale}/login`);
+        return;
+      }
       setError(err.message);
       setProcessing(false);
     }
   }
 
   if (loading) return (
-    <div><Navbar showLogin={false} />
+    <div>
+      <Navbar showLogin={false} />
       <main style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
         <p style={{ color: "var(--text-muted)" }}>Loading…</p>
       </main>
@@ -61,11 +96,16 @@ export default function RenewalPage() {
       })
     : null;
 
-  const renewalAmount = user?.tier === "VAULT"
-    ? "See your Vault renewal fee"
-    : user?.tier === "PREMIUM_VARIANT"
-    ? "RM28 + RM1 gateway"
-    : "RM28 + RM1 gateway";
+  const tierLabel =
+    user?.tier === "VAULT" ? "Vault" :
+    user?.tier === "PREMIUM_VARIANT" ? "Premium" :
+    "Standard";
+
+  // The exact amount is calculated by the backend from PricingConfig.
+  // Never hardcode a figure here that could drift from the DB.
+  const feeNote = user?.tier === "VAULT"
+    ? "Your Vault renewal fee applies"
+    : "Your annual renewal fee applies";
 
   return (
     <div>
@@ -77,6 +117,7 @@ export default function RenewalPage() {
         >
           ← Back to dashboard
         </button>
+
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "0.5rem", color: "var(--ink)" }}>
           Annual Renewal
         </h1>
@@ -102,7 +143,7 @@ export default function RenewalPage() {
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Tier</span>
             <span style={{ fontSize: "0.9rem", color: "var(--ink)", fontWeight: 500 }}>
-              {user?.tier === "VAULT" ? "Vault" : user?.tier === "PREMIUM_VARIANT" ? "Premium" : "Standard"}
+              {tierLabel}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
@@ -115,32 +156,41 @@ export default function RenewalPage() {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Renewal fee</span>
-            <span style={{ fontSize: "0.9rem", color: "var(--ink)", fontWeight: 600 }}>{renewalAmount}</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "right", maxWidth: 220 }}>
+              {feeNote}
+            </span>
           </div>
         </div>
+
+        {!user?.activeHandle && (
+          <p style={{ color: "#B3261E", fontSize: "0.9rem", marginBottom: 12 }}>
+            You have no active handle to renew.
+          </p>
+        )}
 
         {error && <p style={{ color: "#B3261E", fontSize: "0.9rem", marginBottom: 12 }}>{error}</p>}
 
         <button
           onClick={handleRenew}
-          disabled={processing}
+          disabled={processing || !user?.activeHandle}
           style={{
             border: "none",
-            background: "var(--trust-blue)",
+            background: (!user?.activeHandle) ? "var(--border)" : "var(--trust-blue)",
             color: "white",
             padding: "14px",
             borderRadius: 8,
             fontWeight: 500,
             fontSize: "1rem",
             width: "100%",
-            cursor: "pointer",
+            cursor: (processing || !user?.activeHandle) ? "not-allowed" : "pointer",
+            opacity: processing ? 0.7 : 1,
           }}
         >
-          {processing ? "Processing…" : "Renew now — " + renewalAmount}
+          {processing ? "Processing…" : "Renew now"}
         </button>
 
         <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginTop: 12 }}>
-          You will be redirected to ToyyibPay to complete payment.
+          The exact amount will be shown on the ToyyibPay payment page.
         </p>
       </main>
     </div>
