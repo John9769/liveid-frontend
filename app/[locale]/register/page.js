@@ -122,18 +122,13 @@ export default function RegisterPage() {
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
       const livenessResult = await verifyLiveness(blob);
 
-      if (livenessResult.result !== "real") {
-        setError("Liveness check failed. Please try again.");
-        setStep(STEPS.ERROR);
-        return;
-      }
-
       const regResult = await startVerification({
         phone: form.phone,
         email: form.email,
         password: form.password,
         handleName,
         faceId: livenessResult.faceId,
+        photoUrl: livenessResult.photoUrl || null,
         referralCode: referralCode || null,
       });
 
@@ -262,19 +257,33 @@ export default function RegisterPage() {
           {/* STEP 2 — CAMERA */}
           {step === STEPS.CAMERA && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-              <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", textAlign: "center" }}>
-                Look directly at the camera and tap the button below
+              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+                Take your selfie
+              </h2>
+
+              {/* Warning — permanent profile photo */}
+              <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 8, padding: "10px 14px", width: "100%", boxSizing: "border-box" }}>
+                <p style={{ fontSize: "0.82rem", color: "#92400E", margin: 0, textAlign: "center" }}>
+                  📸 This selfie will be your <strong>permanent LiveID profile photo</strong>. It cannot be changed after registration.
+                </p>
+              </div>
+
+              <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", textAlign: "center", margin: 0 }}>
+                Look directly at the camera and tap the button below.
               </p>
+
               <div style={{ width: "100%", maxWidth: 340, borderRadius: 16, overflow: "hidden", border: "2px solid var(--stamp-teal)", background: "#000", aspectRatio: "3/4", position: "relative" }}>
                 <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
+
               <button
                 onClick={captureAndSubmit}
                 disabled={!cameraReady}
                 style={{ border: "none", background: "var(--stamp-teal)", color: "white", padding: "14px 32px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", width: "100%", maxWidth: 340, cursor: "pointer" }}
               >
-                Take selfie and verify
+                Take selfie and continue
               </button>
+
               <button onClick={retryFromForm} style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}>
                 Go back
               </button>
@@ -284,7 +293,7 @@ export default function RegisterPage() {
           {/* STEP 3 — PROCESSING */}
           {step === STEPS.PROCESSING && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>Verifying your identity…</p>
+              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>Processing your registration…</p>
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: 8 }}>This takes a few seconds</p>
             </div>
           )}
