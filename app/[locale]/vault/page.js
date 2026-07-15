@@ -18,7 +18,7 @@ export default function VaultPage() {
     getVaultBillboard()
       .then((data) => {
         if (cancelled) return;
-        setHandles(data.billboard || []);
+        setHandles(data.handles || data.billboard || []);
       })
       .catch(() => { if (!cancelled) setHandles([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
