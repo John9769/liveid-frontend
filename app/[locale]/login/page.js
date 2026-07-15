@@ -30,8 +30,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await loginUser({ phone: form.phone, password: form.password });
-      // Store user in localStorage
-      localStorage.setItem("liveid_user", JSON.stringify(data.user));
+
+      // Backend returns the user object FLAT — not wrapped in data.user
+      if (!data || !data.id) {
+        throw new Error("Login failed — unexpected response from server.");
+      }
+
+      localStorage.setItem("liveid_user", JSON.stringify(data));
       router.push(`/${locale}/dashboard`);
     } catch (err) {
       setError(err.message);
