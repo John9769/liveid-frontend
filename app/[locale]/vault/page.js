@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
-import { getVaultBillboard } from "../../../lib/api";
+import { getVaultHandles } from "../../../lib/api";
 
 export default function VaultPage() {
   const locale = useLocale();
@@ -15,10 +15,10 @@ export default function VaultPage() {
   useEffect(() => {
     let cancelled = false;
 
-    getVaultBillboard()
+    getVaultHandles()
       .then((data) => {
         if (cancelled) return;
-        setHandles(data.handles || data.billboard || []);
+        setHandles(data.vaultHandles || data.handles || []);
       })
       .catch(() => { if (!cancelled) setHandles([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
