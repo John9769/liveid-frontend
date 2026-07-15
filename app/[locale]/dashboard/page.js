@@ -19,9 +19,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem("liveid_user");
-    if (!stored) { router.push(`/${locale}/login`); return; }
+    if (!stored || stored === "undefined" || stored === "null") {
+      router.push(`/${locale}/login`);
+      return;
+    }
 
-    const parsedUser = JSON.parse(stored);
+    let parsedUser;
+    try {
+      parsedUser = JSON.parse(stored);
+    } catch (e) {
+      localStorage.removeItem("liveid_user");
+      router.push(`/${locale}/login`);
+      return;
+    }
     setUser(parsedUser);
 
     Promise.all([
