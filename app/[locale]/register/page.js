@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { verifyLiveness, startVerification, searchHandle } from "../../../lib/api";
 import Navbar from "../../../components/Navbar";
 
@@ -14,6 +15,7 @@ const STEPS = {
 };
 
 export default function RegisterPage() {
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const handleFromUrl = searchParams.get("handle") || "";
 
@@ -36,6 +38,7 @@ export default function RegisterPage() {
   const [handleError, setHandleError] = useState(null);
 
   const [form, setForm] = useState({ phone: "", email: "", password: "" });
+  const [agreed, setAgreed] = useState(false);
   const [step, setStep] = useState(handleFromUrl ? STEPS.FORM : STEPS.HANDLE);
   const [error, setError] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -235,9 +238,27 @@ export default function RegisterPage() {
 
                 {error && <p style={{ color: "#B3261E", fontSize: "0.9rem" }}>{error}</p>}
 
+                {/* Consent checkbox */}
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    style={{ marginTop: 3, flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                    I agree to LiveID&apos;s{" "}
+                    <a href={`/${locale}/terms`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Terms & Conditions</a>
+                    {" "}and{" "}
+                    <a href={`/${locale}/privacy`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Privacy Policy</a>
+                    . I consent to LiveID collecting and storing my selfie photograph for identity verification purposes.
+                  </span>
+                </label>
+
                 <button
                   onClick={startCamera}
-                  style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "12px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", marginTop: 8, cursor: "pointer" }}
+                  disabled={!agreed}
+                  style={{ border: "none", background: agreed ? "var(--trust-blue)" : "var(--border)", color: "white", padding: "12px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", marginTop: 8, cursor: agreed ? "pointer" : "not-allowed" }}
                 >
                   Continue to face verification
                 </button>

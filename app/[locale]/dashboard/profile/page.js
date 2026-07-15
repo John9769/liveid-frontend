@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { getFullProfile, updateProfile } from "../../../../lib/api";
+import { getFullProfile, updateProfile, deleteAccount } from "../../../../lib/api";
 
 export default function ProfilePage() {
   const locale = useLocale();
@@ -23,16 +23,24 @@ export default function ProfilePage() {
     website: "",
   });
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("liveid_user");
     if (!stored) { router.push(`/${locale}/login`); return; }
     const user = JSON.parse(stored);
     setUserId(user.id);
+    setHandle(user.activeHandle || "");
 
     getFullProfile(user.id)
       .then((data) => {
@@ -67,6 +75,23 @@ export default function ProfilePage() {
       setError(err.message || "Failed to save profile.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteInput !== "DELETE") {
+      setDeleteError("Please type DELETE to confirm.");
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount(userId, "DELETE");
+      localStorage.removeItem("liveid_user");
+      router.push(`/${locale}`);
+    } catch (err) {
+      setDeleteError(err.message || "Failed to delete account.");
+      setDeleting(false);
     }
   }
 
@@ -193,6 +218,60 @@ export default function ProfilePage() {
         >
           {saving ? "Saving…" : "Save profile"}
         </button>
+
+        {/* Delete account section */}
+        <div style={{ marginTop: "3rem", padding: "1.25rem", border: "1px solid #B3261E", borderRadius: 12, background: "#FFF5F5" }}>
+          <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#B3261E", marginBottom: 6 }}>Delete Account</p>
+          <p style={{ fontSize: "0.82rem", color: "#B3261E", lineHeight: 1.6, marginBottom: 12 }}>
+            This action is permanent and cannot be undone. Your handle <strong>liveid.asia/{handle}</strong> will be retired forever and cannot be claimed by anyone else. All your data will be deleted.
+          </p>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            style={{ background: "#B3261E", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}
+          >
+            Delete My Account
+          </button>
+        </div>
+
+        {/* Delete confirmation modal */}
+        {showDeleteModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1.5rem" }}>
+            <div style={{ background: "white", borderRadius: 16, padding: "2rem", maxWidth: 420, width: "100%", border: "2px solid #B3261E" }}>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#B3261E", marginBottom: 8 }}>
+                ⚠ Delete Account
+              </h2>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 16 }}>
+                You are about to permanently delete your LiveID account. Your handle <strong>liveid.asia/{handle}</strong> will be retired forever. This cannot be undone.
+              </p>
+              <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
+                Type <strong>DELETE</strong> to confirm:
+              </p>
+              <input
+                type="text"
+                value={deleteInput}
+                onChange={(e) => setDeleteInput(e.target.value)}
+                placeholder="Type DELETE here"
+                style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+              />
+              {deleteError && <p style={{ color: "#B3261E", fontSize: "0.82rem", marginBottom: 12 }}>{deleteError}</p>}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteInput(""); setDeleteError(null); }}
+                  style={{ flex: 1, padding: "10px", background: "white", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.88rem", cursor: "pointer", color: "var(--text-muted)" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteInput !== "DELETE"}
+                  style={{ flex: 1, padding: "10px", background: deleteInput === "DELETE" ? "#B3261E" : "var(--border)", color: "white", border: "none", borderRadius: 8, fontSize: "0.88rem", fontWeight: 600, cursor: deleteInput === "DELETE" ? "pointer" : "not-allowed" }}
+                >
+                  {deleting ? "Deleting…" : "Confirm Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

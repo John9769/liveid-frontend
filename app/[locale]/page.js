@@ -137,6 +137,10 @@ export default function Home() {
           <br />
           <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>{t("footerLine2")}</span>
         </p>
+        <div style={{ marginTop: 12, display: "flex", justifyContent: "center", gap: 24 }}>
+          <a href={`/${locale}/terms`} style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "none" }}>Terms & Conditions</a>
+          <a href={`/${locale}/privacy`} style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "none" }}>Privacy Policy</a>
+        </div>
       </footer>
 
     </div>
