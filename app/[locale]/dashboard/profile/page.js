@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { getFullProfile, updateProfile } from "../../../lib/api";
+import { getFullProfile, updateProfile } from "../../../../lib/api";
 
 export default function ProfilePage() {
   const locale = useLocale();
