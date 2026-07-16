@@ -29,6 +29,7 @@ export default function ProfilePage() {
     website: "",
   });
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoPublic, setPhotoPublic] = useState(false);
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -61,6 +62,7 @@ export default function ProfilePage() {
         if (cancelled) return;
         const p = data.profile || {};
         setPhotoUrl(p.photoUrl || null);
+        setPhotoPublic(p.photoPublic === true);
         setForm({
           displayName: p.displayName || "",
           bio: p.bio || "",
@@ -97,7 +99,7 @@ export default function ProfilePage() {
     setSuccess(false);
     setError(null);
     try {
-      await updateProfile(userId, form);
+      await updateProfile(userId, { ...form, photoPublic });
       setSuccess(true);
     } catch (err) {
       if (err.isAuthError) {
@@ -179,6 +181,41 @@ export default function ProfilePage() {
               Your profile photo is your verified selfie taken during registration. It cannot be changed.
             </p>
           </div>
+        </div>
+
+        {/* Who can see the verified photo — the member decides */}
+        <div style={{ marginBottom: "2rem", padding: "1rem 1.25rem", border: "1px solid var(--border)", borderRadius: 12 }}>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>
+            Who can see your verified photo?
+          </p>
+
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 10 }}>
+            <input
+              type="radio"
+              name="photoVisibility"
+              checked={photoPublic === false}
+              onChange={() => setPhotoPublic(false)}
+              style={{ marginTop: 3, flexShrink: 0 }}
+            />
+            <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+              <strong style={{ color: "var(--ink)" }}>LiveID members only</strong> — anyone can see you are
+              verified, but only logged-in members see your photo.
+            </span>
+          </label>
+
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+            <input
+              type="radio"
+              name="photoVisibility"
+              checked={photoPublic === true}
+              onChange={() => setPhotoPublic(true)}
+              style={{ marginTop: 3, flexShrink: 0 }}
+            />
+            <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+              <strong style={{ color: "var(--ink)" }}>Everyone</strong> — your photo shows to any visitor.
+              Recommended if people need to recognise you before they transact.
+            </span>
+          </label>
         </div>
 
         {/* Display name */}
