@@ -125,8 +125,11 @@ export default function PaymentPage() {
               </p>
             )}
 
-            <p style={{ color: "var(--text-muted)", marginBottom: 24 }}>
-              Your handle is now live. Share your LiveID link with the world.
+            <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>
+              Your handle is now live.
+            </p>
+            <p style={{ color: "var(--ink)", fontWeight: 600, marginBottom: 24 }}>
+              Check your email — we&apos;ve sent your setup guide.
             </p>
 
             {claimed ? (
