@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import Navbar from "../../../../components/Navbar";
-import { getPublicProfile } from "../../../../lib/api";
+import { getPublicProfile, getToken } from "../../../../lib/api";
 
 const linkStyle = {
   display: "flex",
@@ -106,9 +106,15 @@ export default function VerifyPage() {
                   backgroundColor: result.photoUrl ? "transparent" : "var(--mist)",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
-                  border: "2px solid var(--stamp-teal)",
+                  border: `2px solid ${result.photoLocked ? "var(--border)" : "var(--stamp-teal)"}`,
                   flexShrink: 0,
-                }} />
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.4rem",
+                }}>
+                  {result.photoLocked ? "🔒" : null}
+                </div>
                 <div style={{ minWidth: 0 }}>
                   <p style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--ink)", margin: 0 }}>
                     {result.displayName || `liveid.asia/${result.handle}`}
@@ -146,6 +152,24 @@ export default function VerifyPage() {
                     ))}
                   </div>
                 </div>
+              )}
+
+              {result.photoLocked && (
+                <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: "1.25rem" }}>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
+                    This member&apos;s verified photo is visible to LiveID members only.{" "}
+                    <a href={`/${locale}/login`} style={{ color: "var(--trust-blue)", fontWeight: 600 }}>Log in</a>
+                    {" "}or{" "}
+                    <a href={`/${locale}/register`} style={{ color: "var(--trust-blue)", fontWeight: 600 }}>get your LiveID</a>
+                    {" "}to see it.
+                  </p>
+                </div>
+              )}
+
+              {result.viewerIsMember && (
+                <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginBottom: "1.25rem", fontStyle: "italic" }}>
+                  You are logged in. This view is recorded for fraud prevention.
+                </p>
               )}
 
               {socials.length === 0 && !result.bio && (
