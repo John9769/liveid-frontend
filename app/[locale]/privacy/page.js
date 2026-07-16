@@ -43,8 +43,12 @@ const CONTENT = {
         body: `In the event of a personal data breach that is likely to cause significant harm to you, we will notify the Personal Data Protection Commissioner within 72 hours of becoming aware of the breach, as required under the PDPA 2024 Amendment. We will also notify affected users as soon as practicable.`,
       },
       {
-        heading: "9. Your Selfie Photograph",
+        heading: "9. Your Selfie Photograph & Verification Views",
         body: `Your selfie photograph is used solely as your LiveID profile photo displayed on your public verification page. It is stored securely on Cloudinary. We do not use your photograph for facial recognition, biometric matching, or any purpose beyond identity display. Your photograph cannot be changed after registration and will be permanently deleted upon account deletion.`,
+      },
+      {
+        heading: "9a. Verified Photo Access & Verification Views",
+        body: `Your verified selfie is shown only to logged-in LiveID members. Anonymous visitors to your verification page see your handle, verified status, social links and security seal, but not your photograph.\n\nWhen a logged-in LiveID member views another member's verification page, we record the viewing member's ID, the handle viewed, the time, and the IP address. We use this solely for fraud prevention and abuse investigation. We do not disclose this to the member being viewed.`,
       },
       {
         heading: "10. Cookies & Tracking",
@@ -97,8 +101,12 @@ const CONTENT = {
         body: `Sekiranya berlaku pelanggaran data peribadi yang berkemungkinan menyebabkan kemudaratan besar kepada anda, kami akan memberitahu Pesuruhjaya Perlindungan Data Peribadi dalam masa 72 jam selepas menyedari pelanggaran tersebut, seperti yang dikehendaki di bawah Pindaan PDPA 2024. Kami juga akan memberitahu pengguna yang terjejas secepat mungkin.`,
       },
       {
-        heading: "9. Foto Selfie Anda",
+        heading: "9. Foto Selfie Anda & Rekod Semakan",
         body: `Foto selfie anda digunakan semata-mata sebagai foto profil LiveID anda yang dipaparkan pada halaman pengesahan awam anda. Ia disimpan dengan selamat di Cloudinary. Kami tidak menggunakan foto anda untuk pengecaman muka, pemadanan biometrik, atau sebarang tujuan selain paparan identiti. Foto anda tidak boleh ditukar selepas pendaftaran dan akan dipadam secara kekal selepas pemadaman akaun.`,
+      },
+      {
+        heading: "9a. Akses Foto Sah & Rekod Semakan",
+        body: `Foto selfie sah anda hanya dipaparkan kepada ahli LiveID yang telah log masuk. Pelawat tanpa akaun hanya melihat handle, status pengesahan, pautan media sosial dan meterai keselamatan anda — tetapi bukan foto anda.\n\nApabila seorang ahli LiveID yang telah log masuk melihat halaman pengesahan ahli lain, kami merekod ID ahli yang melihat, handle yang dilihat, masa, dan alamat IP. Rekod ini digunakan semata-mata untuk pencegahan penipuan dan siasatan penyalahgunaan. Kami tidak mendedahkannya kepada ahli yang dilihat.`,
       },
       {
         heading: "10. Kuki & Penjejakan",
