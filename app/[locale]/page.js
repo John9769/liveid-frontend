@@ -292,11 +292,7 @@ export default function Home() {
             {t("whyLabel")}
           </p>
           <p className="font-display" style={{ fontSize: "clamp(1.4rem, 3vw, 1.9rem)", color: "white", lineHeight: 1.5, marginBottom: "1rem" }}>
-            {t("whyStat").split("RM830 million").map((part, i) => (
-              i === 0
-                ? <span key={i}>{part}<span style={{ color: "#4ADE80" }}>RM830 million</span></span>
-                : <span key={i}>{part}</span>
-            ))}
+            {t("whyStat")}
           </p>
           <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.6)", marginBottom: "0.75rem", lineHeight: 1.6 }}>
             {t("whyBeat2")}
