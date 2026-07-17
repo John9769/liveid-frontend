@@ -144,6 +144,9 @@ function Field({ label, value, onChange, placeholder, type = "text" }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         style={{
           border: "1px solid var(--border)",
           borderRadius: 8,

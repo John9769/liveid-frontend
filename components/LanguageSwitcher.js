@@ -17,6 +17,7 @@ export default function LanguageSwitcher() {
   return (
     <div style={{ display: "flex", gap: 4 }}>
       <button
+        type="button"
         onClick={() => switchTo("en")}
         style={{
           border: "1px solid var(--border)",
@@ -26,11 +27,13 @@ export default function LanguageSwitcher() {
           padding: "4px 12px",
           fontSize: "0.8rem",
           fontWeight: 500,
+          cursor: "pointer",
         }}
       >
         EN
       </button>
       <button
+        type="button"
         onClick={() => switchTo("ms")}
         style={{
           border: "1px solid var(--border)",
@@ -40,6 +43,7 @@ export default function LanguageSwitcher() {
           padding: "4px 12px",
           fontSize: "0.8rem",
           fontWeight: 500,
+          cursor: "pointer",
         }}
       >
         BM
