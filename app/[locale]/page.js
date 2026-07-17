@@ -143,14 +143,16 @@ function Row({ label, value }) {
   );
 }
 
+// Clean curated words are never sold — the product is the variant.
+// These are examples that drive the search, not stock.
 const VIP_HANDLES = [
-  { name: "liveid.asia/king", handle: "king" },
+  { name: "liveid.asia/bossali", handle: "bossali" },
   { name: "liveid.asia/queen888", handle: "queen888" },
-  { name: "liveid.asia/boss", handle: "boss" },
+  { name: "liveid.asia/kinghassan", handle: "kinghassan" },
   { name: "liveid.asia/prince99", handle: "prince99" },
-  { name: "liveid.asia/princess", handle: "princess" },
+  { name: "liveid.asia/princessdina", handle: "princessdina" },
   { name: "liveid.asia/tycoon888", handle: "tycoon888" },
-  { name: "liveid.asia/dato", handle: "dato" },
+  { name: "liveid.asia/richali", handle: "richali" },
   { name: "liveid.asia/legend1", handle: "legend1" },
 ];
 

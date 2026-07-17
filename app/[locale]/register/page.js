@@ -36,6 +36,7 @@ export default function RegisterPage() {
   const [handleResults, setHandleResults] = useState([]);
   const [handleSearching, setHandleSearching] = useState(false);
   const [handleError, setHandleError] = useState(null);
+  const [titleBlock, setTitleBlock] = useState(null);
 
   const [form, setForm] = useState({ phone: "", email: "", password: "" });
   const [agreed, setAgreed] = useState(false);
@@ -51,8 +52,21 @@ export default function RegisterPage() {
     setHandleSearching(true);
     setHandleError(null);
     setHandleResults([]);
+    setTitleBlock(null);
     try {
       const data = await searchHandle(handleQuery.trim());
+
+      // A conferred title — not for sale, requires documentary proof
+      if (data.blocked) {
+        setTitleBlock({
+          handle: handleQuery.trim(),
+          title: data.title,
+          titleLabel: data.titleLabel,
+          titlePrice: data.titlePrice,
+        });
+        return;
+      }
+
       if (data.results?.length === 0) {
         setHandleError("No handles found. Try a different name.");
       } else {
@@ -184,6 +198,26 @@ export default function RegisterPage() {
               </div>
 
               {handleError && <p style={{ color: "#B3261E", fontSize: "0.85rem", marginBottom: 12 }}>{handleError}</p>}
+
+              {titleBlock && (
+                <div style={{ border: "1px solid #F59E0B", background: "#FFF8E1", borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
+                  <p className="font-mono" style={{ fontSize: "0.95rem", color: "var(--ink)", margin: "0 0 8px" }}>
+                    liveid.asia/{titleBlock.handle}
+                  </p>
+                  <p style={{ fontSize: "0.85rem", color: "#92400E", lineHeight: 1.6, margin: "0 0 12px" }}>
+                    This handle carries the title <strong>{titleBlock.titleLabel}</strong>. LiveID does not sell titles — we verify them. Send us your award document and we will check it against the awarding authority.
+                  </p>
+                  <p style={{ fontSize: "0.8rem", color: "#92400E", margin: "0 0 14px" }}>
+                    {titleBlock.titlePrice ? `RM${titleBlock.titlePrice} once verified. You pay nothing unless approved.` : "You pay nothing unless approved."}
+                  </p>
+                  
+                  <a  href={`/${locale}/title-request?handle=${encodeURIComponent(titleBlock.handle)}`}
+                    style={{ display: "inline-block", border: "none", background: "#92400E", color: "white", padding: "10px 18px", borderRadius: 8, fontWeight: 500, fontSize: "0.88rem", textDecoration: "none" }}
+                  >
+                    Request verification
+                  </a>
+                </div>
+              )}
 
               {handleResults.length > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

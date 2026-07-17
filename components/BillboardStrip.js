@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getVaultBillboard } from "../lib/api";
+import { getBillboard } from "../lib/api";
 
 export default function BillboardStrip() {
   const [handles, setHandles] = useState([]);
 
   useEffect(() => {
-    getVaultBillboard()
-      .then((data) => setHandles(data.handles || []))
+    getBillboard()
+      .then((data) => setHandles(data.billboard || []))
       .catch(() => setHandles([]));
   }, []);
 
@@ -92,7 +92,8 @@ export default function BillboardStrip() {
               }}
             >
               <span style={{ color: "#1a4a2e", fontSize: "0.7rem" }}>◆</span>
-              liveid.asia/{h.name}
+              liveid.asia/{h.example}
+              <span style={{ color: "#1a4a2e" }}>RM{h.variantPrice}</span>
             </span>
           ))}
         </div>

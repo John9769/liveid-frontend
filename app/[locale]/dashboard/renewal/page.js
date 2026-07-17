@@ -7,7 +7,7 @@ import Navbar from "../../../../components/Navbar";
 import {
   getUserProfile,
   initiateRenewal,
-  initiateVaultRenewal,
+  initiateTitleRenewal,
   initiatePremiumRenewal,
   getStoredUser,
   clearSession,
@@ -56,8 +56,8 @@ export default function RenewalPage() {
 
     try {
       let data;
-      if (user.tier === "VAULT") {
-        data = await initiateVaultRenewal(user.id);
+      if (user.tier === "TITLE") {
+        data = await initiateTitleRenewal(user.id);
       } else if (user.tier === "PREMIUM_VARIANT") {
         data = await initiatePremiumRenewal(user.id);
       } else {
@@ -97,14 +97,14 @@ export default function RenewalPage() {
     : null;
 
   const tierLabel =
-    user?.tier === "VAULT" ? "Vault" :
+    user?.tier === "TITLE" ? "Title" :
     user?.tier === "PREMIUM_VARIANT" ? "Premium" :
     "Standard";
 
   // The exact amount is calculated by the backend from PricingConfig.
   // Never hardcode a figure here that could drift from the DB.
-  const feeNote = user?.tier === "VAULT"
-    ? "Your Vault renewal fee applies"
+  const feeNote = user?.tier === "TITLE"
+    ? "Your Title renewal fee applies"
     : "Your annual renewal fee applies";
 
   return (
