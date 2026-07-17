@@ -6,6 +6,143 @@ import SearchBar from "../../components/SearchBar";
 import BillboardStrip from "../../components/BillboardStrip";
 import Navbar from "../../components/Navbar";
 
+function PhoneMockup() {
+  return (
+    <div
+      style={{
+        width: 260,
+        borderRadius: 32,
+        border: "8px solid var(--ink)",
+        background: "white",
+        overflow: "hidden",
+        boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
+      }}
+    >
+      {/* Verified stamp */}
+      <div
+        style={{
+          background: "#F0FDF4",
+          borderBottom: "1px solid var(--border)",
+          padding: "18px 16px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          className="font-mono"
+          style={{
+            fontSize: "0.55rem",
+            letterSpacing: "0.14em",
+            color: "var(--stamp-teal)",
+            textTransform: "uppercase",
+            margin: "0 0 6px",
+          }}
+        >
+          LiveID Verified
+        </p>
+        <p
+          className="font-mono"
+          style={{
+            fontSize: "0.95rem",
+            fontWeight: 700,
+            color: "var(--ink)",
+            margin: "0 0 2px",
+          }}
+        >
+          liveid.asia/hanim
+        </p>
+        <p
+          style={{
+            fontSize: "0.6rem",
+            color: "var(--stamp-teal)",
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
+          VERIFIED HUMAN
+        </p>
+      </div>
+
+      {/* Identity */}
+      <div style={{ padding: "16px", display: "flex", alignItems: "center", gap: 12 }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            backgroundImage:
+              "url(https://res.cloudinary.com/dugbnq9oz/image/upload/v1784293664/liveid_mobile_mockup_nc9gtr.png)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            border: "2px solid var(--stamp-teal)",
+            flexShrink: 0,
+          }}
+        />
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>
+            Hanim Rashid
+          </p>
+          <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
+            Online Seller
+          </p>
+        </div>
+      </div>
+
+      {/* Verification details */}
+      <div
+        style={{
+          margin: "0 16px 16px",
+          background: "var(--mist)",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+          padding: "10px 12px",
+        }}
+      >
+        <Row label="Verified on" value="17 July 2026" />
+        <Row label="Valid until" value="17 July 2027" />
+      </div>
+
+      {/* Seal */}
+      <div style={{ padding: "0 16px 20px" }}>
+        <p
+          style={{
+            fontSize: "0.5rem",
+            fontWeight: 700,
+            color: "var(--ink)",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            margin: "0 0 4px",
+          }}
+        >
+          LiveID Security Seal
+        </p>
+        <p
+          className="font-mono"
+          style={{
+            fontSize: "0.4rem",
+            color: "var(--stamp-teal)",
+            wordBreak: "break-all",
+            lineHeight: 1.7,
+            margin: 0,
+          }}
+        >
+          3f2fb9557202edbf1916c10207c4e3dde35a50fcf042ec1c5400305670ae5e21
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+      <span style={{ fontSize: "0.6rem", color: "var(--text-muted)" }}>{label}</span>
+      <span className="font-mono" style={{ fontSize: "0.6rem", color: "var(--ink)" }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
 const VIP_HANDLES = [
   { name: "liveid.asia/king", handle: "king" },
   { name: "liveid.asia/queen888", handle: "queen888" },
@@ -39,16 +176,62 @@ export default function Home() {
       <BillboardStrip />
 
       {/* HERO */}
-      <main style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "5rem 1.5rem 4rem", textAlign: "center" }}>
-        <div style={{ maxWidth: 680, width: "100%" }}>
-          <h1 className="font-display" style={{ fontSize: "clamp(2.2rem, 5vw, 3.6rem)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-0.03em", color: "var(--ink)", margin: "0 0 1.2rem" }}>
-            {t("tagline")}
-          </h1>
-          <p style={{ fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)", color: "var(--text-muted)", lineHeight: 1.65, margin: "0 0 2.75rem", maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>
-            <strong style={{ color: "var(--ink)" }}>{t("subtitleBold")}</strong>{" "}
-            {t("subtitleRest")}
-          </p>
-          <SearchBar />
+      <main style={{ padding: "4rem 1.5rem 4rem" }}>
+        <div
+          style={{
+            maxWidth: 1080,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "3rem",
+            alignItems: "center",
+          }}
+        >
+          {/* Left — the pitch and the search */}
+          <div>
+            <h1
+              className="font-display"
+              style={{
+                fontSize: "clamp(2.1rem, 4.5vw, 3.2rem)",
+                fontWeight: 600,
+                lineHeight: 1.1,
+                letterSpacing: "-0.03em",
+                color: "var(--ink)",
+                margin: "0 0 1.2rem",
+              }}
+            >
+              {t("tagline")}
+            </h1>
+            <p
+              style={{
+                fontSize: "clamp(1rem, 2vw, 1.15rem)",
+                color: "var(--text-muted)",
+                lineHeight: 1.65,
+                margin: "0 0 2rem",
+              }}
+            >
+              <strong style={{ color: "var(--ink)" }}>{t("subtitleBold")}</strong>{" "}
+              {t("subtitleRest")}
+            </p>
+
+            <SearchBar />
+
+            <p
+              style={{
+                fontSize: "0.8rem",
+                color: "var(--text-muted)",
+                lineHeight: 1.6,
+                margin: "1rem 0 0",
+              }}
+            >
+              {t("heroFootnote")}
+            </p>
+          </div>
+
+          {/* Right — the product, shown not described */}
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <PhoneMockup />
+          </div>
         </div>
       </main>
 
