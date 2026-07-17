@@ -74,7 +74,7 @@ export default function BillboardStrip() {
           style={{
             display: "flex",
             gap: "2rem",
-            animation: "tickerScroll 30s linear infinite",
+            animation: "tickerScroll 90s linear infinite",
             whiteSpace: "nowrap",
           }}
         >
