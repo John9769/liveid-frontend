@@ -92,7 +92,6 @@ export function AdminShell({ children, admin, onLogout }) {
     { label: "Transactions", href: "/admin/dashboard/transactions" },
     { label: "Referrals", href: "/admin/dashboard/referrals" },
     { label: "Verify Logs", href: "/admin/dashboard/verify-logs" },
-    { label: "Vault Offers", href: "/admin/dashboard/vault-offers" },
     { label: "Celebrities", href: "/admin/dashboard/celebrities" },
     { label: "Waitlist", href: "/admin/dashboard/waitlist" },
     { label: "Pricing", href: "/admin/dashboard/pricing" },

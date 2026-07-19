@@ -39,7 +39,7 @@ export default function AdminInvitations() {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/invitations`, {
           headers: { Authorization: `Bearer ${tk}` },
         }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/referrals`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/referrals`, {
           headers: { Authorization: `Bearer ${tk}` },
         }),
       ]);
@@ -114,8 +114,8 @@ export default function AdminInvitations() {
     router.push("/admin");
   }
 
-  const roleColor = (r) => ({ REFERRAL: "#4ade80", SUPER_REFERRAL: "#60a5fa", BOTH: "#fb923c" }[r] || "#94a3b8");
-  const roleBg = (r) => ({ REFERRAL: "#052e16", SUPER_REFERRAL: "#1e3a5f", BOTH: "#422006" }[r] || "#1e293b");
+  const roleColor = (r) => ({ REFERRAL: "#4ade80", SUPER_REFERRAL: "#60a5fa" }[r] || "#94a3b8");
+  const roleBg = (r) => ({ REFERRAL: "#052e16", SUPER_REFERRAL: "#1e3a5f" }[r] || "#1e293b");
 
   return (
     <AdminShell admin={admin} onLogout={handleLogout}>
@@ -156,7 +156,6 @@ export default function AdminInvitations() {
               >
                 <option value="REFERRAL">Referral only</option>
                 <option value="SUPER_REFERRAL">Super Referral only</option>
-                <option value="BOTH">Both (Referral + Super Referral)</option>
               </select>
             </div>
             <div>
@@ -182,7 +181,8 @@ export default function AdminInvitations() {
 
           {form.handle && (
             <p style={{ fontSize: "0.82rem", color: "#3b82f6", marginBottom: 16, fontFamily: "monospace" }}>
-              Handle preview: liveid.asia/{form.handle} — Referral code: {form.handle}
+              Handle preview: liveid.asia/{form.handle}
+              {form.role === "REFERRAL" && ` — Referral code: ${form.handle}`}
             </p>
           )}
 

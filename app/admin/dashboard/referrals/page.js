@@ -95,6 +95,44 @@ export default function AdminReferrals() {
     }
   }
 
+  // Promote / demote a referral to Super Referral.
+  // A referral keeps his own direct income (isActiveReferral stays as-is)
+  // and gains override earnings when others are placed under him.
+  // A pure Super Referral (never a referral) is untouched by this.
+  async function handleToggleSuper(referral) {
+    const promoting = !referral.isSuperReferral;
+
+    if (!promoting) {
+      const subs = (referral.subReferrals || []).length;
+      if (subs > 0) {
+        setError(`Cannot remove Super Referral — ${subs} referral(s) still sit under this person. Reassign them first.`);
+        return;
+      }
+    }
+
+    if (!confirm(
+      promoting
+        ? `Make ${referral.name} a Super Referral? They keep their own direct income and start overriding anyone placed under them.`
+        : `Remove Super Referral status from ${referral.name}?`
+    )) return;
+
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/referrals/${referral.id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ...referral, isSuperReferral: promoting }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update super referral status");
+      setSuccess(promoting ? `${referral.name} is now a Super Referral.` : `${referral.name} is no longer a Super Referral.`);
+      fetchReferrals(token);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   function handleLogout() {
     localStorage.removeItem("liveid_admin");
     router.push("/admin");
@@ -179,6 +217,7 @@ export default function AdminReferrals() {
           {referrals.map((r) => {
             const unpaidDirect = r.totalEarnings - r.totalPaid;
             const unpaidOverride = r.totalOverrideEarnings - r.totalOverridePaid;
+            const subCount = (r.subReferrals || []).length;
             return (
               <div key={r.id} style={{ background: "#1e293b", borderRadius: 12, padding: "1.5rem", border: "1px solid #334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -186,14 +225,23 @@ export default function AdminReferrals() {
                     <p style={{ fontWeight: 700, color: "white", fontSize: "0.95rem", margin: 0 }}>{r.name}</p>
                     <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0" }}>{r.email} · {r.phone}</p>
                     {r.code && <p style={{ fontSize: "0.8rem", color: "#3b82f6", margin: "4px 0 0", fontFamily: "monospace" }}>Code: {r.code}</p>}
+                    {r.isSuperReferral && subCount > 0 && (
+                      <p style={{ fontSize: "0.75rem", color: "#60a5fa", margin: "4px 0 0" }}>Overriding {subCount} referral(s)</p>
+                    )}
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
                     {r.isSuperReferral && (
                       <span style={{ fontSize: "0.72rem", padding: "3px 8px", borderRadius: 4, background: "#1e3a5f", color: "#60a5fa" }}>SUPER</span>
                     )}
                     {r.isActiveReferral && (
                       <span style={{ fontSize: "0.72rem", padding: "3px 8px", borderRadius: 4, background: "#1a2e1a", color: "#4ade80" }}>ACTIVE REFERRAL</span>
                     )}
+                    <button
+                      onClick={() => handleToggleSuper(r)}
+                      style={{ fontSize: "0.75rem", padding: "4px 10px", background: r.isSuperReferral ? "#422006" : "#1e3a5f", color: r.isSuperReferral ? "#fb923c" : "#60a5fa", border: "none", borderRadius: 6, cursor: "pointer" }}
+                    >
+                      {r.isSuperReferral ? "Remove Super" : "Make Super"}
+                    </button>
                     <button
                       onClick={() => handleToggleActive(r)}
                       style={{ fontSize: "0.75rem", padding: "4px 10px", background: r.isActive ? "#450a0a" : "#052e16", color: r.isActive ? "#f87171" : "#4ade80", border: "none", borderRadius: 6, cursor: "pointer" }}

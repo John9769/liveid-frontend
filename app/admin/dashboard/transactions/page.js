@@ -67,10 +67,11 @@ export default function AdminTransactions() {
             <option value="">All Types</option>
             <option value="REGISTRATION">Registration</option>
             <option value="RENEWAL">Renewal</option>
-            <option value="VAULT_PURCHASE">Vault Purchase</option>
-            <option value="VAULT_RENEWAL">Vault Renewal</option>
             <option value="PREMIUM_PURCHASE">Premium Purchase</option>
             <option value="PREMIUM_RENEWAL">Premium Renewal</option>
+            <option value="TITLE_PURCHASE">Title Purchase</option>
+            <option value="TITLE_RENEWAL">Title Renewal</option>
+            <option value="REFERRAL_PAYOUT">Referral Payout</option>
           </select>
           <select
             value={statusFilter}
