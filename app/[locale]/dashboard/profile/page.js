@@ -27,6 +27,10 @@ export default function ProfilePage() {
     youtube: "",
     whatsapp: "",
     website: "",
+    shopActive: false,
+    shopTitle: "",
+    shopArea: "",
+    shopAbout: "",
   });
   const [photoUrl, setPhotoUrl] = useState(null);
   const [photoPublic, setPhotoPublic] = useState(false);
@@ -75,6 +79,10 @@ export default function ProfilePage() {
           youtube: p.youtube || "",
           whatsapp: p.whatsapp || "",
           website: p.website || "",
+          shopActive: p.shopActive === true,
+          shopTitle: p.shopTitle || "",
+          shopArea: p.shopArea || "",
+          shopAbout: p.shopAbout || "",
         });
       } catch (err) {
         if (cancelled) return;
@@ -289,6 +297,75 @@ export default function ProfilePage() {
             />
           </div>
         ))}
+
+        {/* My Shop */}
+        <div style={{ marginTop: "2.5rem", marginBottom: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>My Shop</p>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 14 }}>
+            Turn this on to show what you sell on your verified page. Buyers see your shop after they confirm you are real.
+          </p>
+
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 16 }}>
+            <input
+              type="checkbox"
+              checked={form.shopActive}
+              onChange={(e) => setForm({ ...form, shopActive: e.target.checked })}
+              style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16 }}
+            />
+            <span style={{ fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.6 }}>
+              <strong>Turn on my shop</strong> — off means your page stays a plain verified profile.
+            </span>
+          </label>
+
+          {form.shopActive && (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Shop title — what you sell</label>
+                <input
+                  type="text"
+                  value={form.shopTitle}
+                  onChange={(e) => setForm({ ...form, shopTitle: e.target.value })}
+                  placeholder="Used Cars — Seremban / Takaful Agent / Homemade Kuih"
+                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Area you serve</label>
+                <input
+                  type="text"
+                  value={form.shopArea}
+                  onChange={(e) => setForm({ ...form, shopArea: e.target.value })}
+                  placeholder="Negeri Sembilan"
+                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>About your shop</label>
+                <textarea
+                  value={form.shopAbout}
+                  onChange={(e) => setForm({ ...form, shopAbout: e.target.value })}
+                  placeholder="A short line about your business"
+                  rows={2}
+                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ padding: "1rem 1.25rem", background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 12 }}>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 12px" }}>
+                  Save this page first, then add the items you sell.
+                </p>
+                <button
+                  onClick={() => router.push(`/${locale}/dashboard/shop`)}
+                  style={{ background: "white", border: "1px solid var(--trust-blue)", color: "var(--trust-blue)", borderRadius: 8, padding: "9px 18px", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Manage my items →
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {error && <p style={{ color: "#B3261E", fontSize: "0.85rem", marginBottom: 12 }}>{error}</p>}
         {success && <p style={{ color: "var(--stamp-teal)", fontSize: "0.85rem", marginBottom: 12 }}>Profile saved successfully.</p>}

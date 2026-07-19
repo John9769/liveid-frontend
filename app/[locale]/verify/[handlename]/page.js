@@ -6,22 +6,28 @@ import { useLocale } from "next-intl";
 import Navbar from "../../../../components/Navbar";
 import { getPublicProfile, getToken } from "../../../../lib/api";
 
-const linkStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "8px 12px",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  background: "white",
-  textDecoration: "none",
-};
-
 const labelStyle = { fontSize: "0.82rem", color: "var(--text-muted)", flexShrink: 0, marginRight: 12 };
 const urlStyle = { fontSize: "0.82rem", color: "var(--trust-blue)", wordBreak: "break-all", textAlign: "right" };
 const rowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 };
 const rowLabelStyle = { fontSize: "0.82rem", color: "var(--text-muted)", flexShrink: 0 };
 const rowValueStyle = { fontSize: "0.82rem", color: "var(--ink)", textAlign: "right", wordBreak: "break-all" };
+
+// A raw handle or URL becomes a real clickable link.
+function toUrl(kind, val) {
+  if (!val) return null;
+  const v = String(val).trim();
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  const u = v.replace(/^@/, "");
+  switch (kind) {
+    case "instagram": return `https://instagram.com/${u}`;
+    case "tiktok": return `https://tiktok.com/@${u}`;
+    case "facebook": return `https://facebook.com/${u}`;
+    case "twitter": return `https://x.com/${u}`;
+    case "youtube": return `https://youtube.com/@${u}`;
+    case "website": return v.includes(".") ? `https://${v}` : null;
+    default: return v;
+  }
+}
 
 export default function VerifyPage() {
   const { handlename } = useParams();
@@ -46,14 +52,16 @@ export default function VerifyPage() {
 
   const socials = result
     ? [
-        { label: "Instagram", url: result.instagram },
-        { label: "TikTok", url: result.tiktok },
-        { label: "Facebook", url: result.facebook },
-        { label: "Twitter / X", url: result.twitter },
-        { label: "YouTube", url: result.youtube },
-        { label: "Website", url: result.website },
+        { label: "Facebook", url: toUrl("facebook", result.facebook) },
+        { label: "Instagram", url: toUrl("instagram", result.instagram) },
+        { label: "TikTok", url: toUrl("tiktok", result.tiktok) },
+        { label: "Twitter / X", url: toUrl("twitter", result.twitter) },
+        { label: "YouTube", url: toUrl("youtube", result.youtube) },
+        { label: "Website", url: toUrl("website", result.website) },
       ].filter((s) => s.url)
     : [];
+
+  const hasOfficialAccounts = socials.length > 0;
 
   const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString("en-MY", { day: "numeric", month: "long", year: "numeric" }) : "—";
@@ -71,6 +79,7 @@ export default function VerifyPage() {
 
         {!loading && result?.verified && (
           <div>
+            {/* ---- VERDICT STAMP ---- */}
             <div style={{ background: "#F0FDF4", border: "2px solid var(--stamp-teal)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "center" }}>
               <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.5rem" }}>
                 LiveID Verified
@@ -83,19 +92,32 @@ export default function VerifyPage() {
               </p>
             </div>
 
-            <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
-              <p style={{ fontSize: "0.85rem", color: "#92400E", fontWeight: 600, marginBottom: 6 }}>
-                Important — read before you transact
-              </p>
-              <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.6, margin: 0 }}>
-                This page is the only authentic proof of this person&apos;s verified identity. You are seeing it because you clicked the link yourself.
-                <br /><br />
-                If someone sent you a screenshot of this page, do not trust it. Screenshots can be faked. Only trust what you see by clicking the link yourself.
-                <br /><br />
-                Compare the person you are dealing with against the official accounts below. If they do not match, you are talking to a scammer.
-              </p>
-            </div>
+            {/* ---- THE ANTI-SCAM CORE ---- */}
+            {hasOfficialAccounts ? (
+              <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
+                <p style={{ fontSize: "0.85rem", color: "#92400E", fontWeight: 700, marginBottom: 6 }}>
+                  ⚠ How to not get scammed
+                </p>
+                <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.6, margin: 0 }}>
+                  The accounts listed below are this person&apos;s <strong>only real accounts</strong>. Tap one to open it.
+                  <br /><br />
+                  If the account you are chatting with is <strong>not one of these</strong>, you are talking to a scammer who copied this link. Anyone can paste a LiveID link — only the real owner controls the accounts below.
+                </p>
+              </div>
+            ) : (
+              <div style={{ background: "#FFF5F5", border: "1px solid #B3261E", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
+                <p style={{ fontSize: "0.85rem", color: "#B3261E", fontWeight: 700, marginBottom: 6 }}>
+                  ⚠ Do not transact based on this page alone
+                </p>
+                <p style={{ fontSize: "0.82rem", color: "#B3261E", lineHeight: 1.6, margin: 0 }}>
+                  This person is verified as a real human, but has <strong>not yet confirmed their official social accounts</strong>. That means this page cannot prove which Facebook, Instagram or TikTok account truly belongs to them.
+                  <br /><br />
+                  A scammer could copy this link onto a fake profile. Until the owner lists their official accounts here, do not treat this page as proof of who you are dealing with.
+                </p>
+              </div>
+            )}
 
+            {/* ---- IDENTITY + OFFICIAL ACCOUNTS ---- */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", background: "white" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: "1.25rem" }}>
                 <div style={{
@@ -133,52 +155,110 @@ export default function VerifyPage() {
               </div>
 
               {result.bio && (
-                <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: socials.length ? "1.25rem" : 0 }}>
+                <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: hasOfficialAccounts ? "1.25rem" : 0 }}>
                   {result.bio}
                 </p>
               )}
 
-              {socials.length > 0 && (
+              {hasOfficialAccounts && (
                 <div>
                   <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
-                    Official accounts — check these before you transact
+                    ✓ Their only real accounts — tap to check
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {socials.map((s) => (
-                      <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                        <span style={labelStyle}>{s.label}</span>
-                        <span style={urlStyle}>{s.url}</span>
+
+                      <a
+                      
+                        key={s.label}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "12px 14px",
+                          border: "1px solid var(--stamp-teal)",
+                          borderRadius: 8,
+                          background: "#F0FDF4",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <span style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600 }}>{s.label}</span>
+                        <span style={{ fontSize: "0.82rem", color: "var(--stamp-teal)", fontWeight: 600 }}>Open →</span>
                       </a>
                     ))}
                   </div>
                 </div>
               )}
-
-              {result.photoLocked && (
-                <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: "1.25rem" }}>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
-                    This member&apos;s verified photo is visible to LiveID members only.{" "}
-                    <a href={`/${locale}/login`} style={{ color: "var(--trust-blue)", fontWeight: 600 }}>Log in</a>
-                    {" "}or{" "}
-                    <a href={`/${locale}/register`} style={{ color: "var(--trust-blue)", fontWeight: 600 }}>get your LiveID</a>
-                    {" "}to see it.
-                  </p>
-                </div>
-              )}
-
-              {result.viewerIsMember && (
-                <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginBottom: "1.25rem", fontStyle: "italic" }}>
-                  You are logged in. This view is recorded for fraud prevention.
-                </p>
-              )}
-
-              {socials.length === 0 && !result.bio && (
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontStyle: "italic", margin: 0 }}>
-                  This person has not added any profile details yet.
-                </p>
-              )}
             </div>
 
+            {/* ---- SHOP ---- */}
+            {result.shop && (
+              <div style={{ border: "1px solid var(--stamp-teal)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", background: "white" }}>
+                <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--stamp-teal)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+                  Shop
+                </p>
+                {result.shop.title && (
+                  <p style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--ink)", margin: "0 0 2px" }}>
+                    {result.shop.title}
+                  </p>
+                )}
+                {result.shop.area && (
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 4px" }}>
+                    {result.shop.area}
+                  </p>
+                )}
+                {result.shop.about && (
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 16px" }}>
+                    {result.shop.about}
+                  </p>
+                )}
+
+                {result.shop.items?.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+                    {result.shop.items.map((item) => (
+                      <div key={item.id} style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "12px 14px", background: "var(--paper)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                          <p style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>{item.name}</p>
+                          {item.price && (
+                            <p style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--trust-blue)", margin: 0, whiteSpace: "nowrap" }}>{item.price}</p>
+                          )}
+                        </div>
+                        {item.detail && (
+                          <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "6px 0 0", lineHeight: 1.5 }}>{item.detail}</p>
+                        )}
+                        {item.hasImages && (
+                          <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: "6px 0 0" }}>
+                            📷 Images on request — contact seller
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>
+                    No items listed yet.
+                  </p>
+                )}
+
+                {result.whatsapp && (
+
+                  <a
+                  
+                    href={`https://wa.me/${String(result.whatsapp).replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "block", textAlign: "center", marginTop: 16, background: "var(--stamp-teal)", color: "white", padding: "11px", borderRadius: 8, fontWeight: 600, fontSize: "0.9rem", textDecoration: "none" }}
+                  >
+                    Contact seller on WhatsApp
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* ---- VERIFICATION DETAILS ---- */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "var(--mist)" }}>
               <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
                 Verification details
@@ -203,6 +283,7 @@ export default function VerifyPage() {
               </div>
             </div>
 
+            {/* ---- SECURITY SEAL ---- */}
             {result.handleHash && (
               <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "white" }}>
                 <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
@@ -217,6 +298,7 @@ export default function VerifyPage() {
               </div>
             )}
 
+            {/* ---- REFERRAL CTA ---- */}
             {result.isReferral && result.referralCode && (
               <div style={{ border: "2px solid var(--trust-blue)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "center", background: "#F0F7FF" }}>
                 <p style={{ fontSize: "1rem", fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>
@@ -226,6 +308,7 @@ export default function VerifyPage() {
                   Get your own verified handle at liveid.asia
                 </p>
                 <a
+                
                   href={`/${locale}/register?ref=${result.referralCode}`}
                   style={{ display: "inline-block", background: "var(--trust-blue)", color: "white", padding: "12px 28px", borderRadius: 8, fontWeight: 600, fontSize: "0.95rem", textDecoration: "none" }}
                 >

@@ -169,14 +169,10 @@ export default function DashboardPage() {
               <div>
                 <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>Tier</p>
                 <p style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)" }}>
-                  {user?.tier === "VAULT" ? "🏆 Vault" : user?.tier === "PREMIUM_VARIANT" ? "⭐ Premium" : "✓ Standard"}
+                  {user?.tier === "TITLE" ? "👑 Title" : user?.tier === "PREMIUM_VARIANT" ? "⭐ Premium" : "✓ Standard"}
                 </p>
               </div>
-              {user?.tier === "STANDARD" && (
-                <Link href={`/${locale}/vault`} style={{ border: "1px solid var(--trust-blue)", color: "var(--trust-blue)", padding: "6px 14px", borderRadius: 6, fontSize: "0.85rem", fontWeight: 500 }}>
-                  Upgrade
-                </Link>
-              )}
+              
             </div>
 
             {/* Quick actions */}
@@ -184,7 +180,7 @@ export default function DashboardPage() {
               <ActionCard title="Edit Profile" desc="Bio, city, social links" href={`/${locale}/dashboard/profile`} />
               <ActionCard title="Renewal" desc="Manage your subscription" href={`/${locale}/dashboard/renewal`} />
               <ActionCard title="Verify a handle" desc="Check if someone is real" href={`/${locale}/dashboard/verify`} />
-              <ActionCard title="The Vault" desc="Browse premium handles" href={`/${locale}/vault`} />
+              <ActionCard title="My Shop" desc="Manage what you sell" href={`/${locale}/dashboard/shop`} />
             </div>
 
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
