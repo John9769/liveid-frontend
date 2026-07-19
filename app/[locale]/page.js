@@ -237,8 +237,23 @@ export default function Home() {
         </div>
       </main>
 
-      {/* VIP HANDLES */}
+      {/* SELLER BEAT — featured use case, not a gate */}
       <section style={{ padding: "4rem 1.5rem", background: "var(--mist)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+          <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.75rem" }}>
+            {t("sellerLabel")}
+          </p>
+          <h2 className="font-display" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 600, color: "var(--ink)", marginBottom: "1rem", lineHeight: 1.2 }}>
+            {t("sellerHeading")}
+          </h2>
+          <p style={{ fontSize: "1rem", color: "var(--text-muted)", lineHeight: 1.7, margin: "0 auto", maxWidth: 600 }}>
+            {t("sellerBody")}
+          </p>
+        </div>
+      </section>
+
+      {/* VIP HANDLES */}
+      <section style={{ padding: "4rem 1.5rem" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.5rem", textAlign: "center" }}>
             {t("premiumLabel")}
@@ -265,7 +280,7 @@ export default function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ padding: "5rem 1.5rem" }}>
+      <section style={{ padding: "5rem 1.5rem", background: "var(--mist)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.5rem", textAlign: "center" }}>
             {t("howLabel")}
@@ -308,6 +323,33 @@ export default function Home() {
           >
             {t("whyCta")}
           </button>
+        </div>
+      </section>
+
+      {/* NOT A SELLER + PRICE */}
+      <section style={{ padding: "4rem 1.5rem", textAlign: "center" }}>
+        <div style={{ maxWidth: 620, margin: "0 auto" }}>
+          <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.75rem" }}>
+            {t("everyoneLabel")}
+          </p>
+          <p style={{ fontSize: "1rem", color: "var(--text-muted)", lineHeight: 1.7, marginBottom: "2.5rem" }}>
+            {t("everyoneBody")}
+          </p>
+
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "2.5rem" }}>
+            <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.75rem" }}>
+              {t("priceLabel")}
+            </p>
+            <p style={{ fontSize: "1.05rem", color: "var(--ink)", lineHeight: 1.6, marginBottom: "1.75rem", fontWeight: 500 }}>
+              {t("priceLine")}
+            </p>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "12px 28px", borderRadius: 8, fontWeight: 600, fontSize: "0.95rem", cursor: "pointer" }}
+            >
+              {t("whyCta")}
+            </button>
+          </div>
         </div>
       </section>
 

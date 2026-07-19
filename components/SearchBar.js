@@ -39,6 +39,7 @@ export default function SearchBar() {
         onSubmit={handleSearch}
         style={{
           display: "flex",
+          alignItems: "center",
           gap: 8,
           border: "1px solid var(--border)",
           borderRadius: 10,
@@ -52,6 +53,7 @@ export default function SearchBar() {
           placeholder={t("searchPlaceholder")}
           style={{
             flex: 1,
+            minWidth: 0,
             border: "none",
             background: "transparent",
             padding: "10px 12px",
@@ -64,6 +66,7 @@ export default function SearchBar() {
           type="submit"
           disabled={loading}
           style={{
+            flexShrink: 0,
             border: "none",
             background: "var(--trust-blue)",
             color: "white",
@@ -71,6 +74,8 @@ export default function SearchBar() {
             borderRadius: 8,
             fontWeight: 500,
             fontSize: "0.95rem",
+            cursor: loading ? "default" : "pointer",
+            whiteSpace: "nowrap",
           }}
         >
           {loading ? t("checking") : t("searchButton")}
@@ -121,10 +126,10 @@ function ResultRow({ item, highlight, claimLabel, onClaim }) {
         background: highlight ? "var(--mist)" : "white",
       }}
     >
-      <span className="font-mono" style={{ fontSize: "0.95rem" }}>
+      <span className="font-mono" style={{ fontSize: "0.95rem", wordBreak: "break-all", minWidth: 0 }}>
         {item.name}
       </span>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
         <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
           RM {item.price}
         </span>
@@ -138,6 +143,8 @@ function ResultRow({ item, highlight, claimLabel, onClaim }) {
             padding: "6px 14px",
             fontSize: "0.85rem",
             fontWeight: 500,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
         >
           {claimLabel}
