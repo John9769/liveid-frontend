@@ -247,7 +247,7 @@ export default function VerifyPage() {
 
                   <a
                   
-                    href={`https://wa.me/${String(result.whatsapp).replace(/[^0-9]/g, "")}`}
+                    href={`https://wa.me/${String(result.whatsapp).replace(/[^0-9]/g, "").replace(/^0/, "60")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ display: "block", textAlign: "center", marginTop: 16, background: "var(--stamp-teal)", color: "white", padding: "11px", borderRadius: 8, fontWeight: 600, fontSize: "0.9rem", textDecoration: "none" }}
