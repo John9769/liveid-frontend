@@ -4,24 +4,34 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell } from "../page";
 
+// Matched exactly to VALID_PRICING_KEYS in the backend (17 keys).
 const KEY_LABELS = {
   REGISTRATION_FEE: "Registration Fee",
   STANDARD_HANDLE_BASE: "Standard Handle Base Price",
-  ANNUAL_RENEWAL: "Annual Renewal Fee",
+  CURATED_ADDON: "Curated Word Add-on",
+  ANNUAL_RENEWAL: "Annual Renewal — Standard",
+  RENEWAL_SPECIAL: "Annual Renewal — Special",
+  RENEWAL_SILVER: "Annual Renewal — Silver",
+  RENEWAL_GOLDEN: "Annual Renewal — Golden",
+  TITLE_RENEWAL_PERCENT: "Title Renewal — % of Purchase",
+  GATEWAY_FEE: "Gateway Fee (ToyyibPay)",
   REFERRAL_STANDARD_REG: "Referral — Standard Registration",
   REFERRAL_STANDARD_RENEWAL: "Referral — Standard Renewal",
-  REFERRAL_VAULT_PERCENT: "Referral — Vault/Premium %",
-  GATEWAY_FEE: "Gateway Fee (ToyyibPay)",
-  VAULT_RENEWAL_PERCENT: "Vault Renewal % of Purchase Price",
+  REFERRAL_PREMIUM_PERCENT: "Referral — Premium/Curated %",
+  REFERRAL_TITLE_PERCENT: "Referral — Title %",
   SUPER_REFERRAL_STANDARD_REG: "Super Referral Override — Standard Reg",
   SUPER_REFERRAL_STANDARD_RENEWAL: "Super Referral Override — Standard Renewal",
-  SUPER_REFERRAL_VAULT_PERCENT: "Super Referral Override — Vault/Premium %",
+  SUPER_REFERRAL_PREMIUM_PERCENT: "Super Referral Override — Premium/Curated %",
+  SUPER_REFERRAL_TITLE_PERCENT: "Super Referral Override — Title %",
 };
 
+// The five keys the backend treats as percentages, not ringgit.
 const KEY_FORMAT = {
-  REFERRAL_VAULT_PERCENT: "percent",
-  VAULT_RENEWAL_PERCENT: "percent",
-  SUPER_REFERRAL_VAULT_PERCENT: "percent",
+  TITLE_RENEWAL_PERCENT: "percent",
+  REFERRAL_PREMIUM_PERCENT: "percent",
+  REFERRAL_TITLE_PERCENT: "percent",
+  SUPER_REFERRAL_PREMIUM_PERCENT: "percent",
+  SUPER_REFERRAL_TITLE_PERCENT: "percent",
 };
 
 export default function AdminPricing() {
