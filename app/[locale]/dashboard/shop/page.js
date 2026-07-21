@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   getMyShopItems,
@@ -16,6 +16,7 @@ const EMPTY_ITEM = { name: "", price: "", detail: "", hasImages: false };
 
 export default function ShopPage() {
   const locale = useLocale();
+  const t = useTranslations("Shop");
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [handle, setHandle] = useState("");
@@ -55,7 +56,7 @@ export default function ShopPage() {
           router.push(`/${locale}/login`);
           return;
         }
-        setError("Could not load your items.");
+        setError(t("loadError"));
       }
       if (!cancelled) setLoading(false);
     }
@@ -66,7 +67,7 @@ export default function ShopPage() {
 
   async function handleAdd() {
     if (!draft.name.trim()) {
-      setError("Item name is required.");
+      setError(t("nameRequired"));
       return;
     }
     setAdding(true);
@@ -77,7 +78,7 @@ export default function ShopPage() {
       setDraft(EMPTY_ITEM);
     } catch (err) {
       if (err.isAuthError) { clearSession(); router.push(`/${locale}/login`); return; }
-      setError(err.message || "Could not add item.");
+      setError(err.message || t("addFailed"));
     } finally {
       setAdding(false);
     }
@@ -101,7 +102,7 @@ export default function ShopPage() {
 
   async function saveEdit(itemId) {
     if (!editDraft.name.trim()) {
-      setError("Item name cannot be empty.");
+      setError(t("nameEmptyEdit"));
       return;
     }
     setSavingEdit(true);
@@ -112,7 +113,7 @@ export default function ShopPage() {
       cancelEdit();
     } catch (err) {
       if (err.isAuthError) { clearSession(); router.push(`/${locale}/login`); return; }
-      setError(err.message || "Could not save changes.");
+      setError(err.message || t("saveFailed"));
     } finally {
       setSavingEdit(false);
     }
@@ -124,24 +125,24 @@ export default function ShopPage() {
       setItems((prev) => prev.map((i) => (i.id === item.id ? data.item : i)));
     } catch (err) {
       if (err.isAuthError) { clearSession(); router.push(`/${locale}/login`); return; }
-      setError(err.message || "Could not update item.");
+      setError(err.message || t("updateFailed"));
     }
   }
 
   async function handleDelete(itemId) {
-    if (!confirm("Delete this item? This cannot be undone.")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     try {
       await deleteShopItem(userId, itemId);
       setItems((prev) => prev.filter((i) => i.id !== itemId));
     } catch (err) {
       if (err.isAuthError) { clearSession(); router.push(`/${locale}/login`); return; }
-      setError(err.message || "Could not delete item.");
+      setError(err.message || t("deleteFailed"));
     }
   }
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ color: "var(--text-muted)" }}>Loading…</p>
+      <p style={{ color: "var(--text-muted)" }}>{t("loading")}</p>
     </div>
   );
 
@@ -153,11 +154,11 @@ export default function ShopPage() {
           onClick={() => router.push(`/${locale}/dashboard/profile`)}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
         >
-          ← Back to profile
+          {t("backToProfile")}
         </button>
 
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "0.25rem", color: "var(--ink)" }}>
-          My Shop
+          {t("myShop")}
         </h1>
         {handle && (
           <p className="font-mono" style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
@@ -165,33 +166,33 @@ export default function ShopPage() {
           </p>
         )}
         <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "2rem" }}>
-          Add what you sell. Buyers see these items on your verified page. No photos are stored — tick “Images on request” so buyers know to contact you for pictures.
+          {t("intro")}
         </p>
 
         {error && <p style={{ color: "#B3261E", fontSize: "0.85rem", marginBottom: 16 }}>{error}</p>}
 
         {/* ---- ADD NEW ITEM ---- */}
         <div style={{ padding: "1.25rem", border: "1px solid var(--border)", borderRadius: 12, marginBottom: "2rem", background: "var(--mist)" }}>
-          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>Add an item</p>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>{t("addItem")}</p>
 
           <input
             type="text"
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-            placeholder="Item name — e.g. Honda City 2019"
+            placeholder={t("namePlaceholder")}
             style={inputStyle}
           />
           <input
             type="text"
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
-            placeholder="Price — e.g. RM45,000 / From RM120 / Nego"
+            placeholder={t("pricePlaceholder")}
             style={inputStyle}
           />
           <textarea
             value={draft.detail}
             onChange={(e) => setDraft({ ...draft, detail: e.target.value })}
-            placeholder="Details — condition, spec, terms (optional)"
+            placeholder={t("detailPlaceholder")}
             rows={2}
             style={{ ...inputStyle, resize: "vertical" }}
           />
@@ -202,7 +203,7 @@ export default function ShopPage() {
               onChange={(e) => setDraft({ ...draft, hasImages: e.target.checked })}
               style={{ width: 16, height: 16 }}
             />
-            <span style={{ fontSize: "0.82rem", color: "var(--ink)" }}>Images available on request</span>
+            <span style={{ fontSize: "0.82rem", color: "var(--ink)" }}>{t("imagesOnRequest")}</span>
           </label>
 
           <button
@@ -210,18 +211,18 @@ export default function ShopPage() {
             disabled={adding}
             style={{ width: "100%", background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, padding: "11px", fontSize: "0.92rem", fontWeight: 600, cursor: adding ? "not-allowed" : "pointer", opacity: adding ? 0.7 : 1 }}
           >
-            {adding ? "Adding…" : "Add item"}
+            {adding ? t("adding") : t("addItemBtn")}
           </button>
         </div>
 
         {/* ---- ITEM LIST ---- */}
         <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>
-          Your items ({items.length})
+          {t("yourItems", { count: items.length })}
         </p>
 
         {items.length === 0 && (
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", padding: "1rem 0" }}>
-            No items yet. Add your first one above.
+            {t("emptyItems")}
           </p>
         )}
 
@@ -240,19 +241,19 @@ export default function ShopPage() {
               {editId === item.id ? (
                 /* EDIT MODE */
                 <div>
-                  <input type="text" value={editDraft.name} onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })} placeholder="Item name" style={inputStyle} />
-                  <input type="text" value={editDraft.price} onChange={(e) => setEditDraft({ ...editDraft, price: e.target.value })} placeholder="Price" style={inputStyle} />
-                  <textarea value={editDraft.detail} onChange={(e) => setEditDraft({ ...editDraft, detail: e.target.value })} placeholder="Details" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                  <input type="text" value={editDraft.name} onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })} placeholder={t("namePlaceholderShort")} style={inputStyle} />
+                  <input type="text" value={editDraft.price} onChange={(e) => setEditDraft({ ...editDraft, price: e.target.value })} placeholder={t("pricePlaceholderShort")} style={inputStyle} />
+                  <textarea value={editDraft.detail} onChange={(e) => setEditDraft({ ...editDraft, detail: e.target.value })} placeholder={t("detailPlaceholderShort")} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
                   <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: 12 }}>
                     <input type="checkbox" checked={editDraft.hasImages} onChange={(e) => setEditDraft({ ...editDraft, hasImages: e.target.checked })} style={{ width: 16, height: 16 }} />
-                    <span style={{ fontSize: "0.82rem", color: "var(--ink)" }}>Images available on request</span>
+                    <span style={{ fontSize: "0.82rem", color: "var(--ink)" }}>{t("imagesOnRequest")}</span>
                   </label>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => saveEdit(item.id)} disabled={savingEdit} style={{ flex: 1, background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, padding: "9px", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>
-                      {savingEdit ? "Saving…" : "Save"}
+                      {savingEdit ? t("saving") : t("save")}
                     </button>
                     <button onClick={cancelEdit} style={{ flex: 1, background: "white", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px", fontSize: "0.85rem", cursor: "pointer" }}>
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 </div>
@@ -263,20 +264,20 @@ export default function ShopPage() {
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)", margin: "0 0 2px" }}>
                         {item.name}
-                        {!item.isAvailable && <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}> — unavailable</span>}
+                        {!item.isAvailable && <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>{t("unavailableSuffix")}</span>}
                       </p>
                       {item.price && <p style={{ fontSize: "0.88rem", color: "var(--trust-blue)", margin: "0 0 4px", fontWeight: 500 }}>{item.price}</p>}
                       {item.detail && <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 4px", lineHeight: 1.5 }}>{item.detail}</p>}
-                      {item.hasImages && <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: 0 }}>📷 Images on request</p>}
+                      {item.hasImages && <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: 0 }}>{t("imagesOnRequestBadge")}</p>}
                     </div>
                   </div>
 
                   <div style={{ display: "flex", gap: 14, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                    <button onClick={() => startEdit(item)} style={linkBtn}>Edit</button>
+                    <button onClick={() => startEdit(item)} style={linkBtn}>{t("edit")}</button>
                     <button onClick={() => toggleAvailable(item)} style={linkBtn}>
-                      {item.isAvailable ? "Mark unavailable" : "Mark available"}
+                      {item.isAvailable ? t("markUnavailable") : t("markAvailable")}
                     </button>
-                    <button onClick={() => handleDelete(item.id)} style={{ ...linkBtn, color: "#B3261E" }}>Delete</button>
+                    <button onClick={() => handleDelete(item.id)} style={{ ...linkBtn, color: "#B3261E" }}>{t("delete")}</button>
                   </div>
                 </div>
               )}

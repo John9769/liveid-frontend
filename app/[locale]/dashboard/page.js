@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
@@ -17,6 +17,7 @@ const money = (n) => `RM ${Number(n || 0).toFixed(2)}`;
 
 export default function DashboardPage() {
   const locale = useLocale();
+  const t = useTranslations("Dashboard");
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -83,7 +84,7 @@ export default function DashboardPage() {
       <div>
         <Navbar showLogin={false} />
         <main style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
-          <p style={{ color: "var(--text-muted)" }}>Loading…</p>
+          <p style={{ color: "var(--text-muted)" }}>{t("loading")}</p>
         </main>
       </div>
     );
@@ -108,16 +109,16 @@ export default function DashboardPage() {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
           <div>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>Your LiveID</p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>{t("yourLiveId")}</p>
             <h1 className="font-mono" style={{ fontSize: "1.6rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>
-              {user?.activeHandle ? `liveid.asia/${user.activeHandle}` : "No handle yet"}
+              {user?.activeHandle ? `liveid.asia/${user.activeHandle}` : t("noHandleYet")}
             </h1>
           </div>
           <button
             onClick={handleLogout}
             style={{ border: "1px solid var(--border)", background: "white", color: "var(--text-muted)", borderRadius: 6, padding: "6px 14px", fontSize: "0.85rem", cursor: "pointer" }}
           >
-            Log out
+            {t("logout")}
           </button>
         </div>
 
@@ -125,10 +126,10 @@ export default function DashboardPage() {
         {hasEarnings && (
           <div style={{ display: "flex", gap: 0, marginBottom: "1.5rem", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
             <TabButton active={activeTab === "liveid"} onClick={() => setActiveTab("liveid")}>
-              My LiveID
+              {t("tabLiveId")}
             </TabButton>
             <TabButton active={activeTab === "earnings"} onClick={() => setActiveTab("earnings")}>
-              My Earnings
+              {t("tabEarnings")}
             </TabButton>
           </div>
         )}
@@ -139,14 +140,14 @@ export default function DashboardPage() {
             <div style={{ border: `1px solid ${isExpired ? "#B3261E" : "var(--border)"}`, borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", background: isExpired ? "#FFF5F5" : "var(--mist)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>Status</p>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>{t("status")}</p>
                   <p style={{ fontSize: "1rem", fontWeight: 600, color: isExpired ? "#B3261E" : "var(--stamp-teal)" }}>
-                    {isExpired ? "⚠ Expired" : "✓ Verified Human"}
+                    {isExpired ? t("statusExpired") : t("statusVerified")}
                   </p>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>
-                    {isExpired ? "Expired on" : "Renews on"}
+                    {isExpired ? t("expiredOn") : t("renewsOn")}
                   </p>
                   <p style={{ fontSize: "0.9rem", color: "var(--ink)", fontWeight: 500 }}>{expiryDate || "—"}</p>
                 </div>
@@ -154,11 +155,10 @@ export default function DashboardPage() {
               {isExpired && (
                 <>
                   <p style={{ fontSize: "0.8rem", color: "#B3261E", marginTop: 12, lineHeight: 1.6 }}>
-                    Anyone clicking your link now sees an Expired notice. Your handle is still
-                    yours — renew to restore your verification.
+                    {t("expiredNote")}
                   </p>
                   <Link href={`/${locale}/dashboard/renewal`} style={{ display: "block", marginTop: "1rem", background: "var(--trust-blue)", color: "white", padding: "10px 16px", borderRadius: 8, textAlign: "center", fontWeight: 500, fontSize: "0.9rem" }}>
-                    Renew now
+                    {t("renewNow")}
                   </Link>
                 </>
               )}
@@ -167,9 +167,9 @@ export default function DashboardPage() {
             {/* Tier */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>Tier</p>
+                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>{t("tier")}</p>
                 <p style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)" }}>
-                  {user?.tier === "TITLE" ? "👑 Title" : user?.tier === "PREMIUM_VARIANT" ? "⭐ Premium" : "✓ Standard"}
+                  {user?.tier === "TITLE" ? t("tierTitle") : user?.tier === "PREMIUM_VARIANT" ? t("tierPremium") : t("tierStandard")}
                 </p>
               </div>
               
@@ -177,14 +177,14 @@ export default function DashboardPage() {
 
             {/* Quick actions */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1.5rem" }}>
-              <ActionCard title="Edit Profile" desc="Bio, city, social links" href={`/${locale}/dashboard/profile`} />
-              <ActionCard title="Renewal" desc="Manage your subscription" href={`/${locale}/dashboard/renewal`} />
-              <ActionCard title="Verify a handle" desc="Check if someone is real" href={`/${locale}/dashboard/verify`} />
-              <ActionCard title="My Shop" desc="Manage what you sell" href={`/${locale}/dashboard/shop`} />
+              <ActionCard title={t("actionEditProfileTitle")} desc={t("actionEditProfileDesc")} href={`/${locale}/dashboard/profile`} />
+              <ActionCard title={t("actionRenewalTitle")} desc={t("actionRenewalDesc")} href={`/${locale}/dashboard/renewal`} />
+              <ActionCard title={t("actionVerifyTitle")} desc={t("actionVerifyDesc")} href={`/${locale}/dashboard/verify`} />
+              <ActionCard title={t("actionShopTitle")} desc={t("actionShopDesc")} href={`/${locale}/dashboard/shop`} />
             </div>
 
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
-              Generic ID: {user?.genericId}
+              {t("genericId", { id: user?.genericId })}
             </p>
           </div>
         )}
@@ -196,35 +196,37 @@ export default function DashboardPage() {
             {/* ---- DIRECT — only for a referral with a code ---- */}
             {direct && (
               <div style={{ marginBottom: "2rem" }}>
-                <SectionTitle>Direct Earnings</SectionTitle>
+                <SectionTitle>{t("directEarnings")}</SectionTitle>
 
                 {refData.referral.code && (
                   <div style={{ background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1rem" }}>
                     <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-                      Your Referral Code
+                      {t("yourReferralCode")}
                     </p>
                     <p className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--trust-blue)", margin: 0 }}>
                       {refData.referral.code}
                     </p>
                     <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: 6, wordBreak: "break-all" }}>
-                      Share: liveid.asia/{locale}/register?ref={refData.referral.code}
+                      {t("share", { url: `liveid.asia/${locale}/register?ref=${refData.referral.code}` })}
                     </p>
                   </div>
                 )}
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1rem" }}>
-                  <StatBox label="Registrations" value={direct.totalRegistrations ?? 0} />
-                  <StatBox label="Total Earned" value={money(direct.totalEarnings)} color="var(--stamp-teal)" />
-                  <StatBox label="Paid Out" value={money(direct.totalPaid)} />
-                  <StatBox label="Pending Payout" value={money(direct.unpaid)} color={direct.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
+                  <StatBox label={t("statRegistrations")} value={direct.totalRegistrations ?? 0} />
+                  <StatBox label={t("statTotalEarned")} value={money(direct.totalEarnings)} color="var(--stamp-teal)" />
+                  <StatBox label={t("statPaidOut")} value={money(direct.totalPaid)} />
+                  <StatBox label={t("statPendingPayout")} value={money(direct.unpaid)} color={direct.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
                 </div>
 
                 <EarningsList
-                  title="Recent Direct Earnings"
+                  title={t("recentDirectEarnings")}
                   rows={direct.earnings}
                   amountOf={(e) => e.amount}
                   paidOf={(e) => e.isPaid}
-                  emptyText="No direct earnings yet. Share your referral link to start earning."
+                  emptyText={t("emptyDirect")}
+                  paidLabel={t("paid")}
+                  pendingLabel={t("pending")}
                 />
               </div>
             )}
@@ -232,20 +234,20 @@ export default function DashboardPage() {
             {/* ---- OVERRIDE — only for a super referral ---- */}
             {override && (
               <div>
-                <SectionTitle>Override Earnings — Super Referral</SectionTitle>
+                <SectionTitle>{t("overrideEarnings")}</SectionTitle>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: "1rem" }}>
-                  <StatBox label="My Referrals" value={override.subReferralCount ?? 0} />
-                  <StatBox label="Override Earned" value={money(override.totalEarnings)} color="var(--trust-blue)" />
-                  <StatBox label="Paid Out" value={money(override.totalPaid)} />
-                  <StatBox label="Pending Payout" value={money(override.unpaid)} color={override.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
+                  <StatBox label={t("statMyReferrals")} value={override.subReferralCount ?? 0} />
+                  <StatBox label={t("statOverrideEarned")} value={money(override.totalEarnings)} color="var(--trust-blue)" />
+                  <StatBox label={t("statPaidOut")} value={money(override.totalPaid)} />
+                  <StatBox label={t("statPendingPayout")} value={money(override.unpaid)} color={override.unpaid > 0 ? "#F59E0B" : "var(--text-muted)"} />
                 </div>
 
                 {/* Recruits — their income is private, only my override shows */}
                 {override.subReferrals?.length > 0 ? (
                   <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: "1rem" }}>
                     <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)", margin: 0 }}>
-                      My Referrals
+                      {t("myReferrals")}
                     </p>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       {override.subReferrals.map((sub, i) => (
@@ -253,10 +255,10 @@ export default function DashboardPage() {
                           <div>
                             <p style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>{sub.name}</p>
                             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                              {sub.salesCount} sale{sub.salesCount === 1 ? "" : "s"}
+                              {sub.salesCount} {sub.salesCount === 1 ? t("saleSingular") : t("salePlural")}
                               {" · "}
                               <span style={{ color: sub.isActive ? "var(--stamp-teal)" : "#B3261E" }}>
-                                {sub.isActive ? "Active" : "Inactive"}
+                                {sub.isActive ? t("active") : t("inactive")}
                               </span>
                             </p>
                           </div>
@@ -264,7 +266,7 @@ export default function DashboardPage() {
                             <p style={{ fontSize: "0.9rem", color: "var(--trust-blue)", fontWeight: 700, margin: 0 }}>
                               {money(sub.myOverrideFromThem)}
                             </p>
-                            <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: 0 }}>my override</p>
+                            <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: 0 }}>{t("myOverride")}</p>
                           </div>
                         </div>
                       ))}
@@ -272,16 +274,18 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.88rem", padding: "1.5rem 0" }}>
-                    No referrals under you yet.
+                    {t("noRecruits")}
                   </p>
                 )}
 
                 <EarningsList
-                  title="Recent Override Earnings"
+                  title={t("recentOverrideEarnings")}
                   rows={override.earnings}
                   amountOf={(e) => e.overrideAmount}
                   paidOf={(e) => e.overrideIsPaid}
-                  emptyText="No override earnings yet."
+                  emptyText={t("emptyOverride")}
+                  paidLabel={t("paid")}
+                  pendingLabel={t("pending")}
                 />
               </div>
             )}
@@ -322,7 +326,7 @@ function SectionTitle({ children }) {
   );
 }
 
-function EarningsList({ title, rows, amountOf, paidOf, emptyText }) {
+function EarningsList({ title, rows, amountOf, paidOf, emptyText, paidLabel, pendingLabel }) {
   if (!rows || rows.length === 0) {
     return (
       <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem", padding: "1rem 0" }}>
@@ -354,7 +358,7 @@ function EarningsList({ title, rows, amountOf, paidOf, emptyText }) {
                   {money(amountOf(e))}
                 </p>
                 <p style={{ fontSize: "0.72rem", color: paid ? "var(--stamp-teal)" : "#F59E0B", margin: 0 }}>
-                  {paid ? "Paid" : "Pending"}
+                  {paid ? paidLabel : pendingLabel}
                 </p>
               </div>
             </div>

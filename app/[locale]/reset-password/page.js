@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { resetPassword } from "../../../lib/api";
 import Navbar from "../../../components/Navbar";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("ResetPassword");
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
@@ -20,19 +22,19 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (!password || !confirm) {
-      setError("Fill in both fields.");
+      setError(t("errFillBoth"));
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("errMinLength"));
       return;
     }
     if (password !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("errMismatch"));
       return;
     }
     if (!token) {
-      setError("Invalid reset link.");
+      setError(t("errInvalidLink"));
       return;
     }
 
@@ -63,12 +65,12 @@ export default function ResetPasswordPage() {
             className="font-display"
             style={{ fontSize: "1.8rem", marginBottom: "1.5rem", color: "var(--ink)" }}
           >
-            Reset password
+            {t("title")}
           </h1>
 
           {done ? (
             <p style={{ color: "var(--stamp-teal)", fontSize: "1rem" }}>
-              Password reset successful. You can now log in.
+              {t("successMsg")}
             </p>
           ) : (
             <form
@@ -76,12 +78,12 @@ export default function ResetPasswordPage() {
               style={{ display: "flex", flexDirection: "column", gap: 12 }}
             >
               <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>New password</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("newPassword")}</span>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder={t("newPasswordPlaceholder")}
                   style={{
                     border: "1px solid var(--border)",
                     borderRadius: 8,
@@ -93,12 +95,12 @@ export default function ResetPasswordPage() {
               </label>
 
               <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Confirm password</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("confirmPassword")}</span>
                 <input
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  placeholder="Repeat your password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   style={{
                     border: "1px solid var(--border)",
                     borderRadius: 8,
@@ -127,7 +129,7 @@ export default function ResetPasswordPage() {
                   marginTop: 8,
                 }}
               >
-                {loading ? "Resetting…" : "Reset password"}
+                {loading ? t("resetting") : t("submit")}
               </button>
             </form>
           )}

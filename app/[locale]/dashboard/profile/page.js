@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   getFullProfile,
@@ -13,6 +13,7 @@ import {
 
 export default function ProfilePage() {
   const locale = useLocale();
+  const t = useTranslations("Profile");
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [form, setForm] = useState({
@@ -115,7 +116,7 @@ export default function ProfilePage() {
         router.push(`/${locale}/login`);
         return;
       }
-      setError(err.message || "Failed to save profile.");
+      setError(err.message || t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -123,11 +124,11 @@ export default function ProfilePage() {
 
   async function handleDeleteAccount() {
     if (deleteInput !== "DELETE") {
-      setDeleteError("Please type DELETE to confirm.");
+      setDeleteError(t("errTypeDelete"));
       return;
     }
     if (!deletePassword) {
-      setDeleteError("Enter your password to confirm.");
+      setDeleteError(t("errEnterPassword"));
       return;
     }
 
@@ -138,7 +139,7 @@ export default function ProfilePage() {
       clearSession();
       router.push(`/${locale}`);
     } catch (err) {
-      setDeleteError(err.message || "Failed to delete account.");
+      setDeleteError(err.message || t("deleteFailed"));
       setDeleting(false);
     }
   }
@@ -150,9 +151,19 @@ export default function ProfilePage() {
     setDeleteError(null);
   }
 
+  const socialFields = [
+    { key: "instagram", label: t("labelInstagram"), placeholder: t("phInstagram") },
+    { key: "tiktok", label: t("labelTiktok"), placeholder: t("phTiktok") },
+    { key: "facebook", label: t("labelFacebook"), placeholder: t("phFacebook") },
+    { key: "twitter", label: t("labelTwitter"), placeholder: t("phTwitter") },
+    { key: "youtube", label: t("labelYoutube"), placeholder: t("phYoutube") },
+    { key: "whatsapp", label: t("labelWhatsapp"), placeholder: t("phWhatsapp") },
+    { key: "website", label: t("labelWebsite"), placeholder: t("phWebsite") },
+  ];
+
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ color: "var(--text-muted)" }}>Loading…</p>
+      <p style={{ color: "var(--text-muted)" }}>{t("loading")}</p>
     </div>
   );
 
@@ -164,11 +175,11 @@ export default function ProfilePage() {
           onClick={() => router.push(`/${locale}/dashboard`)}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
         >
-          ← Back to dashboard
+          {t("backToDashboard")}
         </button>
 
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "2rem", color: "var(--ink)" }}>
-          Edit Profile
+          {t("editProfile")}
         </h1>
 
         {/* Profile photo — permanent, cannot change */}
@@ -184,9 +195,9 @@ export default function ProfilePage() {
             {!photoUrl && "👤"}
           </div>
           <div>
-            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>Profile Photo</p>
+            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}>{t("profilePhoto")}</p>
             <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "4px 0 0", lineHeight: 1.5 }}>
-              Your profile photo is your verified selfie taken during registration. It cannot be changed.
+              {t("profilePhotoDesc")}
             </p>
           </div>
         </div>
@@ -194,7 +205,7 @@ export default function ProfilePage() {
         {/* Who can see the verified photo — the member decides */}
         <div style={{ marginBottom: "2rem", padding: "1rem 1.25rem", border: "1px solid var(--border)", borderRadius: 12 }}>
           <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>
-            Who can see your verified photo?
+            {t("whoCanSee")}
           </p>
 
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 10 }}>
@@ -206,8 +217,7 @@ export default function ProfilePage() {
               style={{ marginTop: 3, flexShrink: 0 }}
             />
             <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              <strong style={{ color: "var(--ink)" }}>LiveID members only</strong> — anyone can see you are
-              verified, but only logged-in members see your photo.
+              <strong style={{ color: "var(--ink)" }}>{t("membersOnlyBold")}</strong>{t("membersOnlyRest")}
             </span>
           </label>
 
@@ -220,31 +230,30 @@ export default function ProfilePage() {
               style={{ marginTop: 3, flexShrink: 0 }}
             />
             <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              <strong style={{ color: "var(--ink)" }}>Everyone</strong> — your photo shows to any visitor.
-              Recommended if people need to recognise you before they transact.
+              <strong style={{ color: "var(--ink)" }}>{t("everyoneBold")}</strong>{t("everyoneRest")}
             </span>
           </label>
         </div>
 
         {/* Display name */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Display name</label>
+          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("displayName")}</label>
           <input
             type="text"
             value={form.displayName}
             onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-            placeholder="How you want to be known"
+            placeholder={t("displayNamePlaceholder")}
             style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
           />
         </div>
 
         {/* Bio */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Bio</label>
+          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("bio")}</label>
           <textarea
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
-            placeholder="A short bio"
+            placeholder={t("bioPlaceholder")}
             rows={3}
             style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", resize: "vertical", boxSizing: "border-box" }}
           />
@@ -252,40 +261,32 @@ export default function ProfilePage() {
 
         {/* City */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>City</label>
+          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("city")}</label>
           <input
             type="text"
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
-            placeholder="Kuala Lumpur"
+            placeholder={t("cityPlaceholder")}
             style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
           />
         </div>
 
         {/* Profession */}
         <div style={{ marginBottom: "2rem" }}>
-          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Profession</label>
+          <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("profession")}</label>
           <input
             type="text"
             value={form.profession}
             onChange={(e) => setForm({ ...form, profession: e.target.value })}
-            placeholder="Entrepreneur, Influencer, etc"
+            placeholder={t("professionPlaceholder")}
             style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
           />
         </div>
 
         {/* Social links */}
-        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>Social links</p>
+        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>{t("socialLinks")}</p>
 
-        {[
-          { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/yourname" },
-          { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@yourname" },
-          { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/yourname" },
-          { key: "twitter", label: "Twitter / X", placeholder: "https://x.com/yourname" },
-          { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@yourname" },
-          { key: "whatsapp", label: "WhatsApp", placeholder: "60123456789" },
-          { key: "website", label: "Website", placeholder: "https://yourwebsite.com" },
-        ].map((field) => (
+        {socialFields.map((field) => (
           <div key={field.key} style={{ marginBottom: 12 }}>
             <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{field.label}</label>
             <input
@@ -300,9 +301,9 @@ export default function ProfilePage() {
 
         {/* My Shop */}
         <div style={{ marginTop: "2.5rem", marginBottom: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
-          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>My Shop</p>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>{t("myShop")}</p>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 14 }}>
-            Turn this on to show what you sell on your verified page. Buyers see your shop after they confirm you are real.
+            {t("myShopDesc")}
           </p>
 
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 16 }}>
@@ -313,40 +314,40 @@ export default function ProfilePage() {
               style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16 }}
             />
             <span style={{ fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.6 }}>
-              <strong>Turn on my shop</strong> — off means your page stays a plain verified profile.
+              <strong>{t("turnOnShopBold")}</strong>{t("turnOnShopRest")}
             </span>
           </label>
 
           {form.shopActive && (
             <>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Shop title — what you sell</label>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("shopTitleLabel")}</label>
                 <input
                   type="text"
                   value={form.shopTitle}
                   onChange={(e) => setForm({ ...form, shopTitle: e.target.value })}
-                  placeholder="Used Cars — Seremban / Takaful Agent / Homemade Kuih"
+                  placeholder={t("shopTitlePlaceholder")}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Area you serve</label>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("shopAreaLabel")}</label>
                 <input
                   type="text"
                   value={form.shopArea}
                   onChange={(e) => setForm({ ...form, shopArea: e.target.value })}
-                  placeholder="Negeri Sembilan"
+                  placeholder={t("shopAreaPlaceholder")}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>About your shop</label>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("shopAboutLabel")}</label>
                 <textarea
                   value={form.shopAbout}
                   onChange={(e) => setForm({ ...form, shopAbout: e.target.value })}
-                  placeholder="A short line about your business"
+                  placeholder={t("shopAboutPlaceholder")}
                   rows={2}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", resize: "vertical", boxSizing: "border-box" }}
                 />
@@ -354,13 +355,13 @@ export default function ProfilePage() {
 
               <div style={{ padding: "1rem 1.25rem", background: "var(--mist)", border: "1px solid var(--border)", borderRadius: 12 }}>
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 12px" }}>
-                  Save this page first, then add the items you sell.
+                  {t("saveFirstNote")}
                 </p>
                 <button
                   onClick={() => router.push(`/${locale}/dashboard/shop`)}
                   style={{ background: "white", border: "1px solid var(--trust-blue)", color: "var(--trust-blue)", borderRadius: 8, padding: "9px 18px", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}
                 >
-                  Manage my items →
+                  {t("manageItems")}
                 </button>
               </div>
             </>
@@ -368,27 +369,27 @@ export default function ProfilePage() {
         </div>
 
         {error && <p style={{ color: "#B3261E", fontSize: "0.85rem", marginBottom: 12 }}>{error}</p>}
-        {success && <p style={{ color: "var(--stamp-teal)", fontSize: "0.85rem", marginBottom: 12 }}>Profile saved successfully.</p>}
+        {success && <p style={{ color: "var(--stamp-teal)", fontSize: "0.85rem", marginBottom: 12 }}>{t("saveSuccess")}</p>}
 
         <button
           onClick={handleSave}
           disabled={saving}
           style={{ width: "100%", background: "var(--trust-blue)", color: "white", border: "none", borderRadius: 8, padding: "12px", fontSize: "0.95rem", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", marginTop: 8, opacity: saving ? 0.7 : 1 }}
         >
-          {saving ? "Saving…" : "Save profile"}
+          {saving ? t("saving") : t("saveProfile")}
         </button>
 
         {/* Delete account section */}
         <div style={{ marginTop: "3rem", padding: "1.25rem", border: "1px solid #B3261E", borderRadius: 12, background: "#FFF5F5" }}>
-          <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#B3261E", marginBottom: 6 }}>Delete Account</p>
+          <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#B3261E", marginBottom: 6 }}>{t("deleteAccount")}</p>
           <p style={{ fontSize: "0.82rem", color: "#B3261E", lineHeight: 1.6, marginBottom: 12 }}>
-            This action is permanent and cannot be undone. Your handle <strong>liveid.asia/{handle}</strong> will be retired forever and cannot be claimed by anyone else. All your data will be deleted.
+            {t("deleteWarnPre")}<strong>liveid.asia/{handle}</strong>{t("deleteWarnPost")}
           </p>
           <button
             onClick={() => setShowDeleteModal(true)}
             style={{ background: "#B3261E", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}
           >
-            Delete My Account
+            {t("deleteMyAccount")}
           </button>
         </div>
 
@@ -397,31 +398,31 @@ export default function ProfilePage() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1.5rem" }}>
             <div style={{ background: "white", borderRadius: 16, padding: "2rem", maxWidth: 420, width: "100%", border: "2px solid #B3261E" }}>
               <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#B3261E", marginBottom: 8 }}>
-                ⚠ Delete Account
+                {t("modalTitle")}
               </h2>
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 16 }}>
-                You are about to permanently delete your LiveID account. Your handle <strong>liveid.asia/{handle}</strong> will be retired forever. This cannot be undone.
+                {t("modalWarnPre")}<strong>liveid.asia/{handle}</strong>{t("modalWarnPost")}
               </p>
 
               <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
-                Type <strong>DELETE</strong> to confirm:
+                {t("typeToConfirmPre")}<strong>DELETE</strong>{t("typeToConfirmPost")}
               </p>
               <input
                 type="text"
                 value={deleteInput}
                 onChange={(e) => setDeleteInput(e.target.value)}
-                placeholder="Type DELETE here"
+                placeholder={t("typeDeletePlaceholder")}
                 style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
               />
 
               <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
-                Enter your password:
+                {t("enterPassword")}
               </p>
               <input
                 type="password"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
-                placeholder="Your password"
+                placeholder={t("passwordPlaceholder")}
                 style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
               />
 
@@ -433,7 +434,7 @@ export default function ProfilePage() {
                   disabled={deleting}
                   style={{ flex: 1, padding: "10px", background: "white", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.88rem", cursor: "pointer", color: "var(--text-muted)" }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={handleDeleteAccount}
@@ -450,7 +451,7 @@ export default function ProfilePage() {
                     cursor: (deleteInput === "DELETE" && deletePassword) ? "pointer" : "not-allowed",
                   }}
                 >
-                  {deleting ? "Deleting…" : "Confirm Delete"}
+                  {deleting ? t("deleting") : t("confirmDelete")}
                 </button>
               </div>
             </div>

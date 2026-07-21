@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../../components/Navbar";
 import {
@@ -15,6 +15,7 @@ import {
 
 export default function RenewalPage() {
   const locale = useLocale();
+  const t = useTranslations("Renewal");
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,7 @@ export default function RenewalPage() {
       }
 
       if (!data?.paymentUrl) {
-        throw new Error("Could not start payment. Please try again.");
+        throw new Error(t("startPaymentError"));
       }
 
       window.location.href = data.paymentUrl;
@@ -84,7 +85,7 @@ export default function RenewalPage() {
     <div>
       <Navbar showLogin={false} />
       <main style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
-        <p style={{ color: "var(--text-muted)" }}>Loading…</p>
+        <p style={{ color: "var(--text-muted)" }}>{t("loading")}</p>
       </main>
     </div>
   );
@@ -97,15 +98,13 @@ export default function RenewalPage() {
     : null;
 
   const tierLabel =
-    user?.tier === "TITLE" ? "Title" :
-    user?.tier === "PREMIUM_VARIANT" ? "Premium" :
-    "Standard";
+    user?.tier === "TITLE" ? t("tierTitle") :
+    user?.tier === "PREMIUM_VARIANT" ? t("tierPremium") :
+    t("tierStandard");
 
   // The exact amount is calculated by the backend from PricingConfig.
   // Never hardcode a figure here that could drift from the DB.
-  const feeNote = user?.tier === "TITLE"
-    ? "Your Title renewal fee applies"
-    : "Your annual renewal fee applies";
+  const feeNote = user?.tier === "TITLE" ? t("feeNoteTitle") : t("feeNoteStandard");
 
   return (
     <div>
@@ -115,14 +114,14 @@ export default function RenewalPage() {
           onClick={() => router.push(`/${locale}/dashboard`)}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
         >
-          ← Back to dashboard
+          {t("backToDashboard")}
         </button>
 
         <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "0.5rem", color: "var(--ink)" }}>
-          Annual Renewal
+          {t("title")}
         </h1>
         <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "2rem" }}>
-          Keep your Verified Human status and handle active.
+          {t("subtitle")}
         </p>
 
         <div
@@ -135,27 +134,27 @@ export default function RenewalPage() {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Handle</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("handle")}</span>
             <span className="font-mono" style={{ fontSize: "0.9rem", color: "var(--ink)" }}>
               liveid.asia/{user?.activeHandle || "—"}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Tier</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("tier")}</span>
             <span style={{ fontSize: "0.9rem", color: "var(--ink)", fontWeight: 500 }}>
               {tierLabel}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-              {isExpired ? "Expired on" : "Expires on"}
+              {isExpired ? t("expiredOn") : t("expiresOn")}
             </span>
             <span style={{ fontSize: "0.9rem", color: isExpired ? "#B3261E" : "var(--ink)", fontWeight: 500 }}>
               {expiryDate || "—"}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Renewal fee</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("renewalFee")}</span>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "right", maxWidth: 220 }}>
               {feeNote}
             </span>
@@ -164,7 +163,7 @@ export default function RenewalPage() {
 
         {!user?.activeHandle && (
           <p style={{ color: "#B3261E", fontSize: "0.9rem", marginBottom: 12 }}>
-            You have no active handle to renew.
+            {t("noHandle")}
           </p>
         )}
 
@@ -186,11 +185,11 @@ export default function RenewalPage() {
             opacity: processing ? 0.7 : 1,
           }}
         >
-          {processing ? "Processing…" : "Renew now"}
+          {processing ? t("processing") : t("renewNow")}
         </button>
 
         <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginTop: 12 }}>
-          The exact amount will be shown on the ToyyibPay payment page.
+          {t("amountNote")}
         </p>
       </main>
     </div>

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Navbar from "../../../components/Navbar";
 import { joinWaitlist } from "../../../lib/api";
 
 export default function WaitlistPage() {
+  const t = useTranslations("Waitlist");
   const searchParams = useSearchParams();
   const prefillHandle = searchParams.get("handle") || "";
   const prefillType = searchParams.get("type") || "TAKEN_HANDLE";
@@ -30,7 +32,7 @@ export default function WaitlistPage() {
     setError(null);
 
     if (!form.handleName || !form.name || !form.phone || !form.email) {
-      setError("Fill in all fields to continue.");
+      setError(t("errFillAll"));
       return;
     }
 
@@ -53,22 +55,20 @@ export default function WaitlistPage() {
         {done ? (
           <div style={{ textAlign: "center", padding: "3rem 0" }}>
             <h1 className="font-display" style={{ fontSize: "1.8rem", color: "var(--ink)", marginBottom: "1rem" }}>
-              You're on the list.
+              {t("doneTitle")}
             </h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-              We'll notify you at {form.email} when{" "}
-              <span className="font-mono">liveid.asia/{form.handleName}</span> becomes available.
+              {t("doneBody1")} {form.email} {t("doneBody2")}{" "}
+              <span className="font-mono">liveid.asia/{form.handleName}</span> {t("doneBody3")}
             </p>
           </div>
         ) : (
           <>
             <h1 className="font-display" style={{ fontSize: "1.8rem", marginBottom: "0.5rem", color: "var(--ink)" }}>
-              {form.type === "WISH_REQUEST" ? "Request a handle" : "Join the waitlist"}
+              {form.type === "WISH_REQUEST" ? t("titleWish") : t("titleWaitlist")}
             </h1>
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "2rem" }}>
-              {form.type === "WISH_REQUEST"
-                ? "Tell us which handle you want. We'll review and notify you if it becomes available."
-                : "Be first in line when this handle expires or becomes available."}
+              {form.type === "WISH_REQUEST" ? t("subtitleWish") : t("subtitleWaitlist")}
             </p>
 
             {/* Type toggle */}
@@ -86,7 +86,7 @@ export default function WaitlistPage() {
                   cursor: "pointer",
                 }}
               >
-                Taken handle
+                {t("toggleTaken")}
               </button>
               <button
                 onClick={() => updateField("type", "WISH_REQUEST")}
@@ -101,20 +101,20 @@ export default function WaitlistPage() {
                   cursor: "pointer",
                 }}
               >
-                Wish request
+                {t("toggleWish")}
               </button>
             </div>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <Field
-                label={form.type === "WISH_REQUEST" ? "Handle you want" : "Handle name"}
+                label={form.type === "WISH_REQUEST" ? t("labelHandleWish") : t("labelHandleTaken")}
                 value={form.handleName}
                 onChange={(v) => updateField("handleName", v)}
-                placeholder="e.g. john, boss, dina88"
+                placeholder={t("handlePlaceholder")}
               />
-              <Field label="Your name" value={form.name} onChange={(v) => updateField("name", v)} placeholder="Full name" />
-              <Field label="Phone" value={form.phone} onChange={(v) => updateField("phone", v)} placeholder="60123456789" />
-              <Field label="Email" value={form.email} onChange={(v) => updateField("email", v)} placeholder="you@example.com" type="email" />
+              <Field label={t("labelName")} value={form.name} onChange={(v) => updateField("name", v)} placeholder={t("namePlaceholder")} />
+              <Field label={t("labelPhone")} value={form.phone} onChange={(v) => updateField("phone", v)} placeholder={t("phonePlaceholder")} />
+              <Field label={t("labelEmail")} value={form.email} onChange={(v) => updateField("email", v)} placeholder={t("emailPlaceholder")} type="email" />
 
               {error && <p style={{ color: "#B3261E", fontSize: "0.9rem" }}>{error}</p>}
 
@@ -133,7 +133,7 @@ export default function WaitlistPage() {
                   cursor: "pointer",
                 }}
               >
-                {loading ? "Submitting…" : "Join waitlist"}
+                {loading ? t("submitting") : t("submit")}
               </button>
             </form>
           </>
