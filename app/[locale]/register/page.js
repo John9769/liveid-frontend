@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { verifyLiveness, startVerification, searchHandle } from "../../../lib/api";
 import Navbar from "../../../components/Navbar";
 
@@ -16,6 +16,7 @@ const STEPS = {
 
 export default function RegisterPage() {
   const locale = useLocale();
+  const t = useTranslations("Register");
   const searchParams = useSearchParams();
   const handleFromUrl = searchParams.get("handle") || "";
 
@@ -68,12 +69,12 @@ export default function RegisterPage() {
       }
 
       if (data.results?.length === 0) {
-        setHandleError("No handles found. Try a different name.");
+        setHandleError(t("noHandles"));
       } else {
         setHandleResults(data.results || []);
       }
     } catch (err) {
-      setHandleError("Search failed. Please try again.");
+      setHandleError(t("searchFailed"));
     } finally {
       setHandleSearching(false);
     }
@@ -90,11 +91,11 @@ export default function RegisterPage() {
 
   function validateForm() {
     if (!form.phone || !form.email || !form.password) {
-      setError("Fill in all fields to continue.");
+      setError(t("errorFillAll"));
       return false;
     }
     if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("errorPasswordShort"));
       return false;
     }
     return true;
@@ -113,7 +114,7 @@ export default function RegisterPage() {
         setCameraReady(true);
       }
     } catch (err) {
-      setError("Camera access denied. Please allow camera to continue.");
+      setError(t("cameraDenied"));
       setStep(STEPS.ERROR);
     }
   }
@@ -151,11 +152,11 @@ export default function RegisterPage() {
 
       window.location.href = regResult.paymentUrl;
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || t("errorGeneric"));
       setStep(STEPS.ERROR);
       stopCamera();
     }
-  }, [cameraReady, form, handleName, referralCode]);
+  }, [cameraReady, form, handleName, referralCode, t]);
 
   function retryFromForm() {
     setError(null);
@@ -173,10 +174,10 @@ export default function RegisterPage() {
           {step === STEPS.HANDLE && (
             <div>
               <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
-                Get Your LiveID
+                {t("getTitle")}
               </h2>
               <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-                Choose your handle — this is your verified identity on LiveID.
+                {t("getSubtitle")}
               </p>
 
               <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -185,7 +186,7 @@ export default function RegisterPage() {
                   value={handleQuery}
                   onChange={(e) => setHandleQuery(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  placeholder="Search a handle name"
+                  placeholder={t("searchPlaceholder")}
                   style={{ flex: 1, border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", fontSize: "1rem", outline: "none" }}
                 />
                 <button
@@ -193,7 +194,7 @@ export default function RegisterPage() {
                   disabled={handleSearching}
                   style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "10px 16px", borderRadius: 8, fontWeight: 500, fontSize: "0.9rem", cursor: "pointer" }}
                 >
-                  {handleSearching ? "…" : "Search"}
+                  {handleSearching ? "…" : t("searchButton")}
                 </button>
               </div>
 
@@ -205,16 +206,15 @@ export default function RegisterPage() {
                     liveid.asia/{titleBlock.handle}
                   </p>
                   <p style={{ fontSize: "0.85rem", color: "#92400E", lineHeight: 1.6, margin: "0 0 12px" }}>
-                    This handle carries the title <strong>{titleBlock.titleLabel}</strong>. LiveID does not sell titles — we verify them. Send us your award document and we will check it against the awarding authority.
+                    {t("titleCarriesPre")} <strong>{titleBlock.titleLabel}</strong>. {t("titleCarriesPost")}
                   </p>
                   <p style={{ fontSize: "0.8rem", color: "#92400E", margin: "0 0 14px" }}>
-                    {titleBlock.titlePrice ? `RM${titleBlock.titlePrice} once verified. You pay nothing unless approved.` : "You pay nothing unless approved."}
+                    {titleBlock.titlePrice ? t("titlePriceYes", { price: titleBlock.titlePrice }) : t("titlePriceNo")}
                   </p>
-                  
-                  <a  href={`/${locale}/title-request?handle=${encodeURIComponent(titleBlock.handle)}`}
+                  <a href={`/${locale}/title-request?handle=${encodeURIComponent(titleBlock.handle)}`}
                     style={{ display: "inline-block", border: "none", background: "#92400E", color: "white", padding: "10px 18px", borderRadius: 8, fontWeight: 500, fontSize: "0.88rem", textDecoration: "none" }}
                   >
-                    Request verification
+                    {t("requestVerification")}
                   </a>
                 </div>
               )}
@@ -242,12 +242,12 @@ export default function RegisterPage() {
                           liveid.asia/{h.handle}
                         </p>
                         <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                          {h.available ? `RM ${h.price}` : "Taken"}
+                          {h.available ? `RM ${h.price}` : t("taken")}
                         </p>
                       </div>
                       {h.available && (
                         <span style={{ fontSize: "0.78rem", color: "var(--trust-blue)", fontWeight: 600 }}>
-                          Select →
+                          {t("select")}
                         </span>
                       )}
                     </div>
@@ -260,15 +260,15 @@ export default function RegisterPage() {
           {/* STEP 1 — FORM */}
           {step === STEPS.FORM && (
             <div>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>Claiming</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>{t("claiming")}</p>
               <p className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 500, marginBottom: "2rem", color: "var(--ink)" }}>
                 liveid.asia/{handleName}
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <Field label="Phone number" value={form.phone} onChange={(v) => updateField("phone", v)} placeholder="60123456789" />
-                <Field label="Email" value={form.email} onChange={(v) => updateField("email", v)} placeholder="you@example.com" type="email" />
-                <Field label="Password" value={form.password} onChange={(v) => updateField("password", v)} placeholder="At least 8 characters" type="password" />
+                <Field label={t("phoneLabel")} value={form.phone} onChange={(v) => updateField("phone", v)} placeholder="60123456789" />
+                <Field label={t("emailLabel")} value={form.email} onChange={(v) => updateField("email", v)} placeholder="you@example.com" type="email" />
+                <Field label={t("passwordLabel")} value={form.password} onChange={(v) => updateField("password", v)} placeholder={t("passwordPlaceholder")} type="password" />
 
                 {error && <p style={{ color: "#B3261E", fontSize: "0.9rem" }}>{error}</p>}
 
@@ -281,11 +281,11 @@ export default function RegisterPage() {
                     style={{ marginTop: 3, flexShrink: 0 }}
                   />
                   <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                    I agree to LiveID&apos;s{" "}
-                    <a href={`/${locale}/terms`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Terms & Conditions</a>
-                    {" "}and{" "}
-                    <a href={`/${locale}/privacy`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>Privacy Policy</a>
-                    . I consent to LiveID collecting and storing my selfie photograph for identity verification purposes.
+                    {t("consentPre")}{" "}
+                    <a href={`/${locale}/terms`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>{t("terms")}</a>
+                    {" "}{t("consentAnd")}{" "}
+                    <a href={`/${locale}/privacy`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--trust-blue)" }}>{t("privacy")}</a>
+                    {t("consentPost")}
                   </span>
                 </label>
 
@@ -294,7 +294,7 @@ export default function RegisterPage() {
                   disabled={!agreed}
                   style={{ border: "none", background: agreed ? "var(--trust-blue)" : "var(--border)", color: "white", padding: "12px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", marginTop: 8, cursor: agreed ? "pointer" : "not-allowed" }}
                 >
-                  Continue to face verification
+                  {t("continueToFace")}
                 </button>
 
                 {!handleFromUrl && (
@@ -302,7 +302,7 @@ export default function RegisterPage() {
                     onClick={() => setStep(STEPS.HANDLE)}
                     style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}
                   >
-                    Change handle
+                    {t("changeHandle")}
                   </button>
                 )}
               </div>
@@ -313,18 +313,18 @@ export default function RegisterPage() {
           {step === STEPS.CAMERA && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
               <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
-                Take your selfie
+                {t("selfieTitle")}
               </h2>
 
               {/* Warning — permanent profile photo */}
               <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 8, padding: "10px 14px", width: "100%", boxSizing: "border-box" }}>
                 <p style={{ fontSize: "0.82rem", color: "#92400E", margin: 0, textAlign: "center" }}>
-                  📸 This selfie will be your <strong>permanent LiveID profile photo</strong>. It cannot be changed after registration.
+                  📸 {t("selfieWarningPre")} <strong>{t("selfieWarningBold")}</strong>{t("selfieWarningPost")}
                 </p>
               </div>
 
               <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", textAlign: "center", margin: 0 }}>
-                Look directly at the camera and tap the button below.
+                {t("selfieInstruction")}
               </p>
 
               <div style={{ width: "100%", maxWidth: 340, borderRadius: 16, overflow: "hidden", border: "2px solid var(--stamp-teal)", background: "#000", aspectRatio: "3/4", position: "relative" }}>
@@ -336,11 +336,11 @@ export default function RegisterPage() {
                 disabled={!cameraReady}
                 style={{ border: "none", background: "var(--stamp-teal)", color: "white", padding: "14px 32px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", width: "100%", maxWidth: 340, cursor: "pointer" }}
               >
-                Take selfie and continue
+                {t("takeSelfie")}
               </button>
 
               <button onClick={retryFromForm} style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "0.9rem", textDecoration: "underline", cursor: "pointer" }}>
-                Go back
+                {t("goBack")}
               </button>
             </div>
           )}
@@ -348,8 +348,8 @@ export default function RegisterPage() {
           {/* STEP 3 — PROCESSING */}
           {step === STEPS.PROCESSING && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>Processing your registration…</p>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: 8 }}>This takes a few seconds</p>
+              <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>{t("processing")}</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: 8 }}>{t("processingWait")}</p>
             </div>
           )}
 
@@ -361,7 +361,7 @@ export default function RegisterPage() {
                 onClick={retryFromForm}
                 style={{ border: "none", background: "var(--trust-blue)", color: "white", padding: "12px 24px", borderRadius: 8, fontWeight: 500, fontSize: "1rem", cursor: "pointer" }}
               >
-                Try again
+                {t("tryAgain")}
               </button>
             </div>
           )}

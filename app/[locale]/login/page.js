@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
@@ -9,6 +9,7 @@ import { loginUser } from "../../../lib/api";
 
 export default function LoginPage() {
   const locale = useLocale();
+  const t = useTranslations("Login");
   const router = useRouter();
   const [form, setForm] = useState({ phone: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function LoginPage() {
     setError(null);
 
     if (!form.phone || !form.password) {
-      setError("Fill in all fields to continue.");
+      setError(t("errorFillAll"));
       return;
     }
 
@@ -33,7 +34,7 @@ export default function LoginPage() {
       const data = await loginUser({ phone: form.phone, password: form.password });
 
       if (!data?.token || !data?.user) {
-        throw new Error("Login failed — unexpected response from server.");
+        throw new Error(t("errorUnexpected"));
       }
 
       router.push(`/${locale}/dashboard`);
@@ -59,10 +60,10 @@ export default function LoginPage() {
             className="font-display"
             style={{ fontSize: "1.8rem", marginBottom: "0.5rem", color: "var(--ink)" }}
           >
-            Welcome back.
+            {t("title")}
           </h1>
           <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "2rem" }}>
-            Log in to manage your LiveID handle.
+            {t("subtitle")}
           </p>
 
           <form
@@ -70,16 +71,16 @@ export default function LoginPage() {
             style={{ display: "flex", flexDirection: "column", gap: 12 }}
           >
             <Field
-              label="Phone number"
+              label={t("phoneLabel")}
               value={form.phone}
               onChange={(v) => updateField("phone", v)}
               placeholder="60123456789"
             />
             <Field
-              label="Password"
+              label={t("passwordLabel")}
               value={form.password}
               onChange={(v) => updateField("password", v)}
-              placeholder="Your password"
+              placeholder={t("passwordPlaceholder")}
               type="password"
             />
 
@@ -103,7 +104,7 @@ export default function LoginPage() {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? "Logging in…" : "Log in"}
+              {loading ? t("loggingIn") : t("loginButton")}
             </button>
           </form>
 
@@ -112,7 +113,7 @@ export default function LoginPage() {
               href={`/${locale}/reset-password`}
               style={{ fontSize: "0.85rem", color: "var(--trust-blue)" }}
             >
-              Forgot password?
+              {t("forgotPassword")}
             </Link>
           </div>
 
@@ -124,9 +125,9 @@ export default function LoginPage() {
               color: "var(--text-muted)",
             }}
           >
-            Don&apos;t have a LiveID?{" "}
+            {t("noAccount")}{" "}
             <Link href={`/${locale}/register`} style={{ color: "var(--trust-blue)" }}>
-              Claim your handle
+              {t("claimHandle")}
             </Link>
           </p>
         </div>

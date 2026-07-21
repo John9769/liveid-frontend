@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Navbar from "../../../../components/Navbar";
 import { getPublicProfile, getToken } from "../../../../lib/api";
 
@@ -32,6 +32,7 @@ function toUrl(kind, val) {
 export default function VerifyPage() {
   const { handlename } = useParams();
   const locale = useLocale();
+  const t = useTranslations("Verify");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,12 +44,12 @@ export default function VerifyPage() {
       .then((data) => { if (!cancelled) setResult(data); })
       .catch((err) => {
         if (cancelled) return;
-        setResult({ verified: false, message: err.message || "Could not verify this handle." });
+        setResult({ verified: false, message: err.message || t("couldNotVerify") });
       })
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [handlename]);
+  }, [handlename, t]);
 
   const socials = result
     ? [
@@ -63,8 +64,9 @@ export default function VerifyPage() {
 
   const hasOfficialAccounts = socials.length > 0;
 
+  const dateLocale = locale === "ms" ? "ms-MY" : "en-MY";
   const fmtDate = (d) =>
-    d ? new Date(d).toLocaleDateString("en-MY", { day: "numeric", month: "long", year: "numeric" }) : "—";
+    d ? new Date(d).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : "—";
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--paper)" }}>
@@ -73,7 +75,7 @@ export default function VerifyPage() {
 
         {loading && (
           <div style={{ textAlign: "center", padding: "4rem 0" }}>
-            <p style={{ color: "var(--text-muted)" }}>Verifying…</p>
+            <p style={{ color: "var(--text-muted)" }}>{t("verifying")}</p>
           </div>
         )}
 
@@ -82,13 +84,13 @@ export default function VerifyPage() {
             {/* ---- VERDICT STAMP ---- */}
             <div style={{ background: "#F0FDF4", border: "2px solid var(--stamp-teal)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "center" }}>
               <p className="font-mono" style={{ fontSize: "0.72rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: "0.5rem" }}>
-                LiveID Verified
+                {t("liveIdVerified")}
               </p>
               <h1 className="font-mono" style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--ink)", marginBottom: "0.25rem", wordBreak: "break-all" }}>
                 liveid.asia/{result.handle}
               </h1>
               <p style={{ fontSize: "0.85rem", color: "var(--stamp-teal)", fontWeight: 600, margin: 0 }}>
-                VERIFIED HUMAN
+                {t("verifiedHuman")}
               </p>
             </div>
 
@@ -96,23 +98,23 @@ export default function VerifyPage() {
             {hasOfficialAccounts ? (
               <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
                 <p style={{ fontSize: "0.85rem", color: "#92400E", fontWeight: 700, marginBottom: 6 }}>
-                  ⚠ How to not get scammed
+                  ⚠ {t("howNotScammed")}
                 </p>
                 <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.6, margin: 0 }}>
-                  The accounts listed below are this person&apos;s <strong>only real accounts</strong>. Tap one to open it.
+                  {t("scamSafePre")} <strong>{t("scamSafeBold")}</strong>. {t("scamSafeMid")}
                   <br /><br />
-                  If the account you are chatting with is <strong>not one of these</strong>, you are talking to a scammer who copied this link. Anyone can paste a LiveID link — only the real owner controls the accounts below.
+                  {t("scamSafeWarnPre")} <strong>{t("scamSafeWarnBold")}</strong>{t("scamSafeWarnPost")}
                 </p>
               </div>
             ) : (
               <div style={{ background: "#FFF5F5", border: "1px solid #B3261E", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
                 <p style={{ fontSize: "0.85rem", color: "#B3261E", fontWeight: 700, marginBottom: 6 }}>
-                  ⚠ Do not transact based on this page alone
+                  ⚠ {t("noTransactTitle")}
                 </p>
                 <p style={{ fontSize: "0.82rem", color: "#B3261E", lineHeight: 1.6, margin: 0 }}>
-                  This person is verified as a real human, but has <strong>not yet confirmed their official social accounts</strong>. That means this page cannot prove which Facebook, Instagram or TikTok account truly belongs to them.
+                  {t("noSocialPre")} <strong>{t("noSocialBold")}</strong>. {t("noSocialMid")}
                   <br /><br />
-                  A scammer could copy this link onto a fake profile. Until the owner lists their official accounts here, do not treat this page as proof of who you are dealing with.
+                  {t("noSocialPost")}
                 </p>
               </div>
             )}
@@ -163,30 +165,13 @@ export default function VerifyPage() {
               {hasOfficialAccounts && (
                 <div>
                   <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
-                    ✓ Their only real accounts — tap to check
+                    ✓ {t("theirRealAccounts")}
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {socials.map((s) => (
-
-                      <a
-                      
-                        key={s.label}
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "12px 14px",
-                          border: "1px solid var(--stamp-teal)",
-                          borderRadius: 8,
-                          background: "#F0FDF4",
-                          textDecoration: "none",
-                        }}
-                      >
+                      <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", border: "1px solid var(--stamp-teal)", borderRadius: 8, background: "#F0FDF4", textDecoration: "none" }}>
                         <span style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600 }}>{s.label}</span>
-                        <span style={{ fontSize: "0.82rem", color: "var(--stamp-teal)", fontWeight: 600 }}>Open →</span>
+                        <span style={{ fontSize: "0.82rem", color: "var(--stamp-teal)", fontWeight: 600 }}>{t("open")}</span>
                       </a>
                     ))}
                   </div>
@@ -198,7 +183,7 @@ export default function VerifyPage() {
             {result.shop && (
               <div style={{ border: "1px solid var(--stamp-teal)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", background: "white" }}>
                 <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--stamp-teal)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
-                  Shop
+                  {t("shop")}
                 </p>
                 {result.shop.title && (
                   <p style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--ink)", margin: "0 0 2px" }}>
@@ -231,7 +216,7 @@ export default function VerifyPage() {
                         )}
                         {item.hasImages && (
                           <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: "6px 0 0" }}>
-                            📷 Images on request — contact seller
+                            📷 {t("imagesOnRequest")}
                           </p>
                         )}
                       </div>
@@ -239,20 +224,13 @@ export default function VerifyPage() {
                   </div>
                 ) : (
                   <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>
-                    No items listed yet.
+                    {t("noItems")}
                   </p>
                 )}
 
                 {result.whatsapp && (
-
-                  <a
-                  
-                    href={`https://wa.me/${String(result.whatsapp).replace(/[^0-9]/g, "").replace(/^0/, "60")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "block", textAlign: "center", marginTop: 16, background: "var(--stamp-teal)", color: "white", padding: "11px", borderRadius: 8, fontWeight: 600, fontSize: "0.9rem", textDecoration: "none" }}
-                  >
-                    Contact seller on WhatsApp
+                  <a href={`https://wa.me/${String(result.whatsapp).replace(/[^0-9]/g, "").replace(/^0/, "60")}`} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", marginTop: 16, background: "var(--stamp-teal)", color: "white", padding: "11px", borderRadius: 8, fontWeight: 600, fontSize: "0.9rem", textDecoration: "none" }}>
+                    {t("contactWhatsApp")}
                   </a>
                 )}
               </div>
@@ -261,23 +239,23 @@ export default function VerifyPage() {
             {/* ---- VERIFICATION DETAILS ---- */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "var(--mist)" }}>
               <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
-                Verification details
+                {t("verificationDetails")}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={rowStyle}>
-                  <span style={rowLabelStyle}>Generic ID</span>
+                  <span style={rowLabelStyle}>{t("genericId")}</span>
                   <span className="font-mono" style={rowValueStyle}>{result.genericId}</span>
                 </div>
                 <div style={rowStyle}>
-                  <span style={rowLabelStyle}>Tier</span>
+                  <span style={rowLabelStyle}>{t("tier")}</span>
                   <span className="font-mono" style={rowValueStyle}>{result.tier}</span>
                 </div>
                 <div style={rowStyle}>
-                  <span style={rowLabelStyle}>Verified on</span>
+                  <span style={rowLabelStyle}>{t("verifiedOn")}</span>
                   <span className="font-mono" style={rowValueStyle}>{fmtDate(result.verifiedAt)}</span>
                 </div>
                 <div style={rowStyle}>
-                  <span style={rowLabelStyle}>Valid until</span>
+                  <span style={rowLabelStyle}>{t("validUntil")}</span>
                   <span className="font-mono" style={rowValueStyle}>{fmtDate(result.registrationExpiry)}</span>
                 </div>
               </div>
@@ -287,13 +265,13 @@ export default function VerifyPage() {
             {result.handleHash && (
               <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "white" }}>
                 <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-                  LiveID Security Seal
+                  {t("securitySeal")}
                 </p>
                 <p className="font-mono" style={{ fontSize: "0.65rem", color: "var(--stamp-teal)", wordBreak: "break-all", lineHeight: 1.8, margin: 0 }}>
                   {result.handleHash}
                 </p>
                 <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 6, lineHeight: 1.6 }}>
-                  A unique cryptographic seal generated when this handle was issued. It is bound to this person&apos;s verified identity and cannot be forged or reused.
+                  {t("sealDesc")}
                 </p>
               </div>
             )}
@@ -302,23 +280,19 @@ export default function VerifyPage() {
             {result.isReferral && result.referralCode && (
               <div style={{ border: "2px solid var(--trust-blue)", borderRadius: 12, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "center", background: "#F0F7FF" }}>
                 <p style={{ fontSize: "1rem", fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>
-                  Verify Yourself. Get Your LiveID.
+                  {t("referralTitle")}
                 </p>
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: 16 }}>
-                  Get your own verified handle at liveid.asia
+                  {t("referralSubtitle")}
                 </p>
-                <a
-                
-                  href={`/${locale}/register?ref=${result.referralCode}`}
-                  style={{ display: "inline-block", background: "var(--trust-blue)", color: "white", padding: "12px 28px", borderRadius: 8, fontWeight: 600, fontSize: "0.95rem", textDecoration: "none" }}
-                >
-                  Get Your LiveID
+                <a href={`/${locale}/register?ref=${result.referralCode}`} style={{ display: "inline-block", background: "var(--trust-blue)", color: "white", padding: "12px 28px", borderRadius: 8, fontWeight: 600, fontSize: "0.95rem", textDecoration: "none" }}>
+                  {t("referralButton")}
                 </a>
               </div>
             )}
 
             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", textAlign: "center", lineHeight: 1.7 }}>
-              Powered by LiveID — liveid.asia
+              {t("poweredBy")}
               <br />
               AWAS Premium Resources (202603141446)
             </p>
@@ -328,14 +302,14 @@ export default function VerifyPage() {
         {!loading && result?.expired && (
           <div style={{ border: "2px solid #B3261E", borderRadius: 12, padding: "2rem", textAlign: "center", background: "#FFF5F5" }}>
             <h1 className="font-display" style={{ fontSize: "1.6rem", color: "#B3261E", marginBottom: "1rem" }}>
-              This handle has expired
+              {t("expiredTitle")}
             </h1>
             <p style={{ color: "#B3261E", fontSize: "0.95rem", lineHeight: 1.7, margin: 0 }}>
-              The owner of{" "}
+              {t("expiredPre")}{" "}
               <span className="font-mono">liveid.asia/{result.handle || handlename}</span>{" "}
-              has not renewed their LiveID verification.
+              {t("expiredMid")}
               <br /><br />
-              Do not accept this handle as proof of identity. An expired LiveID does not confirm who this person is.
+              {t("expiredPost")}
             </p>
           </div>
         )}
@@ -343,12 +317,12 @@ export default function VerifyPage() {
         {!loading && !result?.verified && !result?.expired && (
           <div style={{ border: "2px solid var(--border)", borderRadius: 12, padding: "2rem", textAlign: "center", background: "white" }}>
             <h1 className="font-display" style={{ fontSize: "1.6rem", color: "var(--ink)", marginBottom: "1rem" }}>
-              Handle not found
+              {t("notFoundTitle")}
             </h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.7, margin: 0 }}>
-              <span className="font-mono">liveid.asia/{handlename}</span> is not a verified LiveID.
+              <span className="font-mono">liveid.asia/{handlename}</span> {t("notFoundMid")}
               <br /><br />
-              If someone gave you this link as proof of identity, they are not verified.
+              {t("notFoundPost")}
             </p>
           </div>
         )}
