@@ -129,5 +129,23 @@
     "notFoundTitle": "Handle not found",
     "notFoundMid": "is not a verified LiveID.",
     "notFoundPost": "If someone gave you this link as proof of identity, they are not verified."
+  },
+  "Payment": {
+    "confirming": "Confirming your payment…",
+    "confirmingWait": "This can take up to a minute. Please don't close this page.",
+    "successTitle": "You're verified!",
+    "handleLive": "Your LiveID handle is now live.",
+    "checkEmail": "Check your email for your login details.",
+    "goDashboard": "Go to my dashboard",
+    "logInAccount": "Log in to my account",
+    "failedTitle": "Payment not completed",
+    "failedBody": "Your payment did not go through. No charge was made. Please try again.",
+    "tryAgain": "Try again",
+    "timeoutTitle": "Still processing",
+    "timeoutBody": "Your payment is taking longer than usual to confirm. If you completed payment, your handle will be activated shortly. You can log in to check.",
+    "goLogin": "Go to login",
+    "unknownTitle": "No payment found",
+    "unknownBody": "We couldn't find a payment to confirm.",
+    "goHome": "Go home"
   }
 }

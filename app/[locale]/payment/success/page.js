@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { getTransactionStatus, claimSession } from "../../../../lib/api";
 import Navbar from "../../../../components/Navbar";
@@ -10,6 +10,7 @@ import Navbar from "../../../../components/Navbar";
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const locale = useLocale();
+  const t = useTranslations("Payment");
   const router = useRouter();
   const [status, setStatus] = useState("checking");
   const [handle, setHandle] = useState(null);
@@ -105,9 +106,9 @@ export default function PaymentPage() {
       >
         {status === "checking" && (
           <div>
-            <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>Confirming your payment…</p>
+            <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>{t("confirming")}</p>
             <p style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
-              This can take up to a minute. Please do not close this page.
+              {t("confirmingWait")}
             </p>
           </div>
         )}
@@ -116,7 +117,7 @@ export default function PaymentPage() {
           <div>
             <p style={{ fontSize: "3rem", marginBottom: 12 }}>✓</p>
             <h1 className="font-display" style={{ fontSize: "2rem", color: "var(--ink)", marginBottom: 12 }}>
-              You&apos;re verified.
+              {t("successTitle")}
             </h1>
 
             {handle && (
@@ -126,10 +127,10 @@ export default function PaymentPage() {
             )}
 
             <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>
-              Your handle is now live.
+              {t("handleLive")}
             </p>
             <p style={{ color: "var(--ink)", fontWeight: 600, marginBottom: 24 }}>
-              Check your email — we&apos;ve sent your setup guide.
+              {t("checkEmail")}
             </p>
 
             {claimed ? (
@@ -137,11 +138,11 @@ export default function PaymentPage() {
                 onClick={() => router.push(`/${locale}/dashboard`)}
                 style={buttonStyle}
               >
-                Go to my dashboard
+                {t("goDashboard")}
               </button>
             ) : (
               <Link href={`/${locale}/login`} style={buttonStyle}>
-                Log in to your account
+                {t("logInAccount")}
               </Link>
             )}
           </div>
@@ -150,13 +151,13 @@ export default function PaymentPage() {
         {status === "failed" && (
           <div>
             <h1 className="font-display" style={{ fontSize: "2rem", color: "#B3261E", marginBottom: 12 }}>
-              Payment failed
+              {t("failedTitle")}
             </h1>
             <p style={{ color: "var(--text-muted)", marginBottom: 24 }}>
-              Your payment was not completed. No charge was made. Please try again.
+              {t("failedBody")}
             </p>
             <Link href={`/${locale}/register`} style={buttonStyle}>
-              Try again
+              {t("tryAgain")}
             </Link>
           </div>
         )}
@@ -164,13 +165,13 @@ export default function PaymentPage() {
         {status === "timeout" && (
           <div>
             <h1 className="font-display" style={{ fontSize: "1.8rem", color: "var(--ink)", marginBottom: 12 }}>
-              Still checking…
+              {t("timeoutTitle")}
             </h1>
             <p style={{ color: "var(--text-muted)", marginBottom: 24, maxWidth: 420, lineHeight: 1.7 }}>
-              Your payment may still be processing. If you were charged, your account will be created shortly — try logging in in a few minutes. If the problem continues, contact us at hello@awas.asia.
+              {t("timeoutBody")}
             </p>
             <Link href={`/${locale}/login`} style={buttonStyle}>
-              Go to login
+              {t("goLogin")}
             </Link>
           </div>
         )}
@@ -178,13 +179,13 @@ export default function PaymentPage() {
         {status === "unknown" && (
           <div>
             <h1 className="font-display" style={{ fontSize: "1.8rem", color: "var(--ink)", marginBottom: 12 }}>
-              Nothing to confirm
+              {t("unknownTitle")}
             </h1>
             <p style={{ color: "var(--text-muted)", marginBottom: 24 }}>
-              We could not find a payment reference on this page.
+              {t("unknownBody")}
             </p>
             <Link href={`/${locale}`} style={buttonStyle}>
-              Go to homepage
+              {t("goHome")}
             </Link>
           </div>
         )}
