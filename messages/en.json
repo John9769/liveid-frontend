@@ -332,7 +332,18 @@
     "recentOverrideEarnings": "Recent Override Earnings",
     "emptyOverride": "No override earnings yet.",
     "paid": "Paid",
-    "pending": "Pending"
+    "pending": "Pending",
+    "strengthTitle": "Your page strength",
+    "strengthCompleteBody": "Your verification page is complete. Buyers can check your face, your accounts and your number.",
+    "strengthIncompleteBody": "Being verified is not the same as having a page a buyer can use. Here is what a visitor can check on your page right now.",
+    "strengthVerified": "Verified human — liveness checked at registration",
+    "strengthPhotoOk": "Face photo on file",
+    "strengthPhotoNo": "No face photo — buyers cannot compare your face",
+    "strengthSocialOk": "Social accounts registered",
+    "strengthSocialNo": "No social accounts — buyers cannot check which accounts are yours",
+    "strengthWhatsappOk": "WhatsApp registered",
+    "strengthWhatsappNo": "No WhatsApp — buyers cannot check a number they were given",
+    "strengthCta": "Complete my page →"
   },
   "Profile": {
     "loading": "Loading…",
@@ -401,7 +412,22 @@
     "deleteFailed": "Failed to delete account.",
     "cancel": "Cancel",
     "deleting": "Deleting…",
-    "confirmDelete": "Confirm Delete"
+    "confirmDelete": "Confirm Delete",
+    "photoTip": "Sellers: showing your photo to everyone makes your page far harder to fake. A buyer who can see your face knows instantly if the person messaging them is someone else.",
+    "socialLinksDesc": "These are shown on your verification page so buyers can confirm which accounts are really yours. Social profiles are already public, so nothing new is exposed.",
+    "waTitle": "WhatsApp number",
+    "waDesc": "Optional. Your number is the one detail here that is not already public somewhere else, so you choose how it is used.",
+    "waFormatHint": "Malaysian mobile only. 012-3456789 or +60 12-345 6789.",
+    "waWhoCanSee": "How should your number be used?",
+    "waModeMatchBold": "Check only",
+    "waModeMatchRest": " — nobody is ever shown your number. A buyer who was given a number can test it and is told yes or no. Recommended.",
+    "waModePublicBold": "Show it on my page",
+    "waModePublicRest": " — your number is displayed to everyone, including visitors who are not logged in. Easiest for buyers to reach you.",
+    "waModeHiddenBold": "Do not use it",
+    "waModeHiddenRest": " — your number is stored but never shown and never checked. Buyers contact you through your other links.",
+    "waNoticePublic": "Your number will be visible to anyone who opens your verification page, including people who are not logged in and search engines. Only choose this if you are comfortable with your number being public.",
+    "waNoticeMatch": "Your number is never displayed to anyone. Visitors can only confirm whether a number they already have belongs to you. Limited to 2 checks per person per day.",
+    "waNoticeHidden": "Your number stays private and no check is offered on your page."
   },
   "Renewal": {
     "loading": "Loading…",

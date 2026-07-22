@@ -11,6 +11,16 @@ import {
   clearSession,
 } from "../../../../lib/api";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px 12px",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  fontSize: "0.95rem",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
 export default function ProfilePage() {
   const locale = useLocale();
   const t = useTranslations("Profile");
@@ -35,6 +45,11 @@ export default function ProfilePage() {
   });
   const [photoUrl, setPhotoUrl] = useState(null);
   const [photoPublic, setPhotoPublic] = useState(false);
+  // How the number is exposed on the verification page. MATCH_ONLY is the
+  // default: nobody is ever shown the number, but a visitor holding one can
+  // test it. That protects the owner and still catches an impersonator who
+  // hands out their own contact.
+  const [whatsappMode, setWhatsappMode] = useState("MATCH_ONLY");
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,6 +83,7 @@ export default function ProfilePage() {
         const p = data.profile || {};
         setPhotoUrl(p.photoUrl || null);
         setPhotoPublic(p.photoPublic === true);
+        setWhatsappMode(p.whatsappMode || "MATCH_ONLY");
         setForm({
           displayName: p.displayName || "",
           bio: p.bio || "",
@@ -108,7 +124,7 @@ export default function ProfilePage() {
     setSuccess(false);
     setError(null);
     try {
-      await updateProfile(userId, { ...form, photoPublic });
+      await updateProfile(userId, { ...form, photoPublic, whatsappMode });
       setSuccess(true);
     } catch (err) {
       if (err.isAuthError) {
@@ -151,14 +167,22 @@ export default function ProfilePage() {
     setDeleteError(null);
   }
 
+  // WhatsApp is no longer in this list. It carries a phone number, which is
+  // the one detail on the page that is not already public elsewhere, so it
+  // gets its own section with its own visibility choice.
   const socialFields = [
     { key: "instagram", label: t("labelInstagram"), placeholder: t("phInstagram") },
     { key: "tiktok", label: t("labelTiktok"), placeholder: t("phTiktok") },
     { key: "facebook", label: t("labelFacebook"), placeholder: t("phFacebook") },
     { key: "twitter", label: t("labelTwitter"), placeholder: t("phTwitter") },
     { key: "youtube", label: t("labelYoutube"), placeholder: t("phYoutube") },
-    { key: "whatsapp", label: t("labelWhatsapp"), placeholder: t("phWhatsapp") },
     { key: "website", label: t("labelWebsite"), placeholder: t("phWebsite") },
+  ];
+
+  const waModes = [
+    { value: "MATCH_ONLY", boldKey: "waModeMatchBold", restKey: "waModeMatchRest" },
+    { value: "PUBLIC", boldKey: "waModePublicBold", restKey: "waModePublicRest" },
+    { value: "HIDDEN", boldKey: "waModeHiddenBold", restKey: "waModeHiddenRest" },
   ];
 
   if (loading) return (
@@ -233,6 +257,10 @@ export default function ProfilePage() {
               <strong style={{ color: "var(--ink)" }}>{t("everyoneBold")}</strong>{t("everyoneRest")}
             </span>
           </label>
+
+          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "12px 0 0", paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+            💡 {t("photoTip")}
+          </p>
         </div>
 
         {/* Display name */}
@@ -243,7 +271,7 @@ export default function ProfilePage() {
             value={form.displayName}
             onChange={(e) => setForm({ ...form, displayName: e.target.value })}
             placeholder={t("displayNamePlaceholder")}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+            style={inputStyle}
           />
         </div>
 
@@ -255,7 +283,7 @@ export default function ProfilePage() {
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
             placeholder={t("bioPlaceholder")}
             rows={3}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+            style={{ ...inputStyle, resize: "vertical" }}
           />
         </div>
 
@@ -267,7 +295,7 @@ export default function ProfilePage() {
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
             placeholder={t("cityPlaceholder")}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+            style={inputStyle}
           />
         </div>
 
@@ -279,12 +307,15 @@ export default function ProfilePage() {
             value={form.profession}
             onChange={(e) => setForm({ ...form, profession: e.target.value })}
             placeholder={t("professionPlaceholder")}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+            style={inputStyle}
           />
         </div>
 
         {/* Social links */}
-        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>{t("socialLinks")}</p>
+        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{t("socialLinks")}</p>
+        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 14 }}>
+          {t("socialLinksDesc")}
+        </p>
 
         {socialFields.map((field) => (
           <div key={field.key} style={{ marginBottom: 12 }}>
@@ -294,10 +325,70 @@ export default function ProfilePage() {
               value={form[field.key]}
               onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
               placeholder={field.placeholder}
-              style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+              style={inputStyle}
             />
           </div>
         ))}
+
+        {/* WhatsApp — its own section.
+            A phone number is the one detail here that is not public
+            somewhere else already, so the owner picks how it is exposed
+            and is told plainly what each choice means. */}
+        <div style={{ marginTop: "2.5rem", marginBottom: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{t("waTitle")}</p>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 14 }}>
+            {t("waDesc")}
+          </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{t("labelWhatsapp")}</label>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={form.whatsapp}
+              onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+              placeholder={t("phWhatsapp")}
+              style={inputStyle}
+            />
+            <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: "6px 0 0" }}>
+              {t("waFormatHint")}
+            </p>
+          </div>
+
+          {form.whatsapp.trim() !== "" && (
+            <div style={{ padding: "1rem 1.25rem", border: "1px solid var(--border)", borderRadius: 12 }}>
+              <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>
+                {t("waWhoCanSee")}
+              </p>
+
+              {waModes.map((m) => (
+                <label key={m.value} style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 10 }}>
+                  <input
+                    type="radio"
+                    name="whatsappMode"
+                    checked={whatsappMode === m.value}
+                    onChange={() => setWhatsappMode(m.value)}
+                    style={{ marginTop: 3, flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                    <strong style={{ color: "var(--ink)" }}>{t(m.boldKey)}</strong>{t(m.restKey)}
+                  </span>
+                </label>
+              ))}
+
+              {/* Consent notice. The owner is told where the number goes at
+                  the moment they choose, which is what makes the consent
+                  informed rather than assumed. */}
+              <div style={{ background: whatsappMode === "PUBLIC" ? "#FFF8E1" : "var(--mist)", border: `1px solid ${whatsappMode === "PUBLIC" ? "#F59E0B" : "var(--border)"}`, borderRadius: 8, padding: "10px 12px", marginTop: 4 }}>
+                <p style={{ fontSize: "0.78rem", color: whatsappMode === "PUBLIC" ? "#92400E" : "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>
+                  {whatsappMode === "PUBLIC" && `⚠ ${t("waNoticePublic")}`}
+                  {whatsappMode === "MATCH_ONLY" && `🔒 ${t("waNoticeMatch")}`}
+                  {whatsappMode === "HIDDEN" && t("waNoticeHidden")}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* My Shop */}
         <div style={{ marginTop: "2.5rem", marginBottom: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
@@ -327,7 +418,7 @@ export default function ProfilePage() {
                   value={form.shopTitle}
                   onChange={(e) => setForm({ ...form, shopTitle: e.target.value })}
                   placeholder={t("shopTitlePlaceholder")}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+                  style={inputStyle}
                 />
               </div>
 
@@ -338,7 +429,7 @@ export default function ProfilePage() {
                   value={form.shopArea}
                   onChange={(e) => setForm({ ...form, shopArea: e.target.value })}
                   placeholder={t("shopAreaPlaceholder")}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }}
+                  style={inputStyle}
                 />
               </div>
 
@@ -349,7 +440,7 @@ export default function ProfilePage() {
                   onChange={(e) => setForm({ ...form, shopAbout: e.target.value })}
                   placeholder={t("shopAboutPlaceholder")}
                   rows={2}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.95rem", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                  style={{ ...inputStyle, resize: "vertical" }}
                 />
               </div>
 
@@ -412,7 +503,7 @@ export default function ProfilePage() {
                 value={deleteInput}
                 onChange={(e) => setDeleteInput(e.target.value)}
                 placeholder={t("typeDeletePlaceholder")}
-                style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+                style={{ ...inputStyle, border: "2px solid #B3261E", marginBottom: 12 }}
               />
 
               <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, marginBottom: 8 }}>
@@ -423,7 +514,7 @@ export default function ProfilePage() {
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 placeholder={t("passwordPlaceholder")}
-                style={{ width: "100%", padding: "10px 12px", border: "2px solid #B3261E", borderRadius: 8, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+                style={{ ...inputStyle, border: "2px solid #B3261E", marginBottom: 12 }}
               />
 
               {deleteError && <p style={{ color: "#B3261E", fontSize: "0.82rem", marginBottom: 12 }}>{deleteError}</p>}

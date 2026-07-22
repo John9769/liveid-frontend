@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [completeness, setCompleteness] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("liveid");
   const [refData, setRefData] = useState(null);
@@ -45,10 +46,14 @@ export default function DashboardPage() {
 
         try {
           const profileData = await getFullProfile(stored.id);
-          if (!cancelled) setProfile(profileData.profile);
+          if (!cancelled) {
+            setProfile(profileData.profile);
+            // Sibling of profile in the response, not nested inside it.
+            setCompleteness(profileData.completeness || null);
+          }
         } catch (err) {
           if (err.isAuthError) throw err;
-          if (!cancelled) setProfile(null);
+          if (!cancelled) { setProfile(null); setCompleteness(null); }
         }
 
         // Most users are not referrals — a 404 here is normal
@@ -163,6 +168,14 @@ export default function DashboardPage() {
                 </>
               )}
             </div>
+
+            {/* Page strength.
+                Being verified is not the same as having a page a buyer can
+                use. This says which checks a visitor can actually perform,
+                and links straight to the field that is missing. */}
+            {completeness && (
+              <PageStrength c={completeness} t={t} locale={locale} handle={user?.activeHandle} />
+            )}
 
             {/* Tier */}
             <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -294,6 +307,63 @@ export default function DashboardPage() {
         )}
 
       </main>
+    </div>
+  );
+}
+
+// ============================================================
+// PAGE STRENGTH
+//
+// The score is private to the owner. A visitor never sees a grade —
+// they see what they can and cannot check. Here the owner sees the
+// same facts framed as work to do, with a link to the exact field.
+// ============================================================
+
+function PageStrength({ c, t, locale, handle }) {
+  const score = c.score ?? 0;
+  const complete = score >= 100;
+
+  const bar = complete ? "var(--stamp-teal)" : score >= 70 ? "#F59E0B" : "#B3261E";
+  const tint = complete ? "#F0FDF4" : score >= 70 ? "#FFF8E1" : "#FFF5F5";
+  const edge = complete ? "var(--stamp-teal)" : score >= 70 ? "#F59E0B" : "#B3261E";
+
+  const rows = [
+    { ok: true, label: t("strengthVerified") },
+    { ok: c.hasPhoto, label: c.hasPhoto ? t("strengthPhotoOk") : t("strengthPhotoNo") },
+    { ok: c.hasSocial, label: c.hasSocial ? t("strengthSocialOk") : t("strengthSocialNo") },
+    { ok: c.hasWhatsapp, label: c.hasWhatsapp ? t("strengthWhatsappOk") : t("strengthWhatsappNo") },
+  ];
+
+  return (
+    <div style={{ border: `1px solid ${edge}`, borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.5rem", background: tint }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+        <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+          {t("strengthTitle")}
+        </p>
+        <p style={{ fontSize: "1.1rem", fontWeight: 700, color: bar, margin: 0 }}>
+          {score}%
+        </p>
+      </div>
+
+      <div style={{ height: 6, background: "rgba(0,0,0,0.08)", borderRadius: 999, overflow: "hidden", marginBottom: 12 }}>
+        <div style={{ width: `${score}%`, height: "100%", background: bar, borderRadius: 999 }} />
+      </div>
+
+      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 12px" }}>
+        {complete ? t("strengthCompleteBody") : t("strengthIncompleteBody")}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: complete ? 0 : 14 }}>
+        {rows.map((r, i) => (
+          <p key={i} style={{ fontSize: "0.8rem", color: r.ok ? "var(--text-muted)" : "var(--ink)", fontWeight: r.ok ? 400 : 600, lineHeight: 1.5, margin: 0 }}>
+            {r.ok ? "✓" : "✗"} {r.label}
+          </p>
+        ))}
+      </div>
+
+      {!complete && (
+        <Link href={`/${locale}/dashboard/profile`} style={{ display: "block", textAlign: "center", background: "var(--trust-blue)", color: "white", padding: "10px", borderRadius: 8, fontWeight: 600, fontSize: "0.88rem", textDecoration: "none" }}>{t("strengthCta")}</Link>
+      )}
     </div>
   );
 }

@@ -332,7 +332,18 @@
     "recentOverrideEarnings": "Pendapatan Override Terkini",
     "emptyOverride": "Belum ada pendapatan override.",
     "paid": "Dibayar",
-    "pending": "Menunggu"
+    "pending": "Menunggu",
+    "strengthTitle": "Kekuatan halaman anda",
+    "strengthCompleteBody": "Halaman pengesahan anda lengkap. Pembeli boleh menyemak wajah, akaun dan nombor anda.",
+    "strengthIncompleteBody": "Disahkan tidak sama dengan mempunyai halaman yang boleh digunakan pembeli. Berikut apa yang pelawat boleh semak pada halaman anda sekarang.",
+    "strengthVerified": "Manusia disahkan — semakan keliangsungan semasa pendaftaran",
+    "strengthPhotoOk": "Foto wajah ada dalam rekod",
+    "strengthPhotoNo": "Tiada foto wajah — pembeli tidak dapat banding wajah anda",
+    "strengthSocialOk": "Akaun sosial didaftarkan",
+    "strengthSocialNo": "Tiada akaun sosial — pembeli tidak dapat semak akaun mana milik anda",
+    "strengthWhatsappOk": "WhatsApp didaftarkan",
+    "strengthWhatsappNo": "Tiada WhatsApp — pembeli tidak dapat semak nombor yang diberikan kepada mereka",
+    "strengthCta": "Lengkapkan halaman saya →"
   },
   "Profile": {
     "loading": "Memuatkan…",
@@ -401,7 +412,22 @@
     "deleteFailed": "Gagal memadam akaun.",
     "cancel": "Batal",
     "deleting": "Memadam…",
-    "confirmDelete": "Sahkan Padam"
+    "confirmDelete": "Sahkan Padam",
+    "photoTip": "Penjual: memaparkan foto anda kepada semua orang menjadikan halaman anda jauh lebih sukar dipalsukan. Pembeli yang dapat melihat wajah anda tahu serta-merta jika orang yang menghubungi mereka itu orang lain.",
+    "socialLinksDesc": "Ini dipaparkan pada halaman pengesahan anda supaya pembeli boleh mengesahkan akaun mana yang benar-benar milik anda. Profil sosial memang sudah terbuka kepada umum, jadi tiada apa-apa baharu didedahkan.",
+    "waTitle": "Nombor WhatsApp",
+    "waDesc": "Pilihan. Nombor anda ialah satu-satunya butiran di sini yang belum terdedah kepada umum di tempat lain, jadi anda pilih bagaimana ia digunakan.",
+    "waFormatHint": "Nombor bimbit Malaysia sahaja. 012-3456789 atau +60 12-345 6789.",
+    "waWhoCanSee": "Bagaimana nombor anda patut digunakan?",
+    "waModeMatchBold": "Semakan sahaja",
+    "waModeMatchRest": " — nombor anda tidak sekali-kali dipaparkan. Pembeli yang diberi sesuatu nombor boleh mengujinya dan diberitahu ya atau tidak. Disyorkan.",
+    "waModePublicBold": "Paparkan pada halaman saya",
+    "waModePublicRest": " — nombor anda dipaparkan kepada semua orang, termasuk pelawat yang tidak log masuk. Paling mudah untuk pembeli menghubungi anda.",
+    "waModeHiddenBold": "Jangan gunakan",
+    "waModeHiddenRest": " — nombor anda disimpan tetapi tidak dipaparkan dan tidak disemak. Pembeli menghubungi anda melalui pautan lain.",
+    "waNoticePublic": "Nombor anda akan dilihat oleh sesiapa sahaja yang membuka halaman pengesahan anda, termasuk orang yang tidak log masuk dan enjin carian. Pilih ini hanya jika anda selesa nombor anda menjadi umum.",
+    "waNoticeMatch": "Nombor anda tidak dipaparkan kepada sesiapa pun. Pelawat hanya boleh mengesahkan sama ada nombor yang sudah ada pada mereka itu milik anda. Terhad kepada 2 semakan setiap orang sehari.",
+    "waNoticeHidden": "Nombor anda kekal peribadi dan tiada semakan ditawarkan pada halaman anda."
   },
   "Renewal": {
     "loading": "Memuatkan…",
