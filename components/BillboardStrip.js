@@ -21,7 +21,7 @@ export default function BillboardStrip() {
   // words makes the strip longer, and a fixed 90s would then scroll faster
   // to cover it in the same time. Roughly 22 seconds per item keeps the
   // reading pace the same however many handles are in the index.
-  const duration = Math.max(50, handles.length * 9);
+  const duration = Math.max(28, handles.length * 5);
 
   return (
     <div
@@ -63,8 +63,6 @@ export default function BillboardStrip() {
             animation: `tickerScroll ${duration}s linear infinite`,
             whiteSpace: "nowrap",
             willChange: "transform",
-            backfaceVisibility: "hidden",
-            transform: "translateZ(0)",
           }}
         >
           {items.map((h, i) => (
