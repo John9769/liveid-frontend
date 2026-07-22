@@ -16,7 +16,14 @@ export default function TermsPage() {
       <main style={{ maxWidth: 720, margin: "0 auto", padding: "3rem 1.5rem" }}>
 
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            // router.back() dies when there is no history — a fresh tab, or
+            // a click straight from the consent checkbox in a new window.
+            // Fall back to the landing page so the button always does
+            // something.
+            if (window.history.length > 1) router.back();
+            else router.push(`/${locale}`);
+          }}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
         >
           {t("back")}
