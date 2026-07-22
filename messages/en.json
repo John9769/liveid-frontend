@@ -160,7 +160,9 @@
     "scopeDoes1": "A real human passed a liveness check to open this handle.",
     "scopeDoes2": "The details on this page were registered by that account holder.",
     "scopeNot1": "LiveID does not verify that those details are true, and is not responsible for information entered by the handle owner.",
-    "scopeDecision": "Use this page to help you decide. Do not rely on it alone."
+    "scopeDecision": "Use this page to help you decide. Do not rely on it alone.",
+    "verdictFailedTitle": "A check did not match",
+    "verdictFailedBody": "One of the details you were given does not belong to {handle}. Do not pay or send anything. You are likely dealing with someone impersonating this handle."
   },
   "Payment": {
     "confirming": "Confirming your payment…",

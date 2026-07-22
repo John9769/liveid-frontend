@@ -160,7 +160,9 @@
     "scopeDoes1": "Seorang manusia tulen telah lulus semakan keliangsungan untuk membuka handle ini.",
     "scopeDoes2": "Butiran di halaman ini didaftarkan oleh pemilik akaun tersebut.",
     "scopeNot1": "LiveID tidak mengesahkan kebenaran butiran tersebut, dan tidak bertanggungjawab atas maklumat yang dimasukkan oleh pemilik handle.",
-    "scopeDecision": "Gunakan halaman ini untuk membantu keputusan anda. Jangan bergantung kepadanya semata-mata."
+    "scopeDecision": "Gunakan halaman ini untuk membantu keputusan anda. Jangan bergantung kepadanya semata-mata.",
+    "verdictFailedTitle": "Semakan tidak sepadan",
+    "verdictFailedBody": "Salah satu butiran yang diberikan kepada anda bukan milik {handle}. Jangan bayar atau hantar apa-apa. Anda berkemungkinan besar berurusan dengan seseorang yang menyamar sebagai handle ini."
   },
   "Payment": {
     "confirming": "Mengesahkan pembayaran anda…",

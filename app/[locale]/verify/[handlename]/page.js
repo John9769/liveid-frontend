@@ -79,6 +79,12 @@ export default function VerifyPage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // A check that ran and came back wrong. The verdict must react to this:
+  // offering "you are dealing with the real owner" directly beneath a
+  // failed number check is the same false reassurance the page exists to
+  // prevent, and a buyer skimming past the red box would act on it.
+  const [checkFailed, setCheckFailed] = useState(false);
+
   useEffect(() => {
     if (!handlename) return;
     let cancelled = false;
@@ -321,7 +327,7 @@ export default function VerifyPage() {
                     </p>
                   </div>
                 ) : (
-                  <WhatsappMatch handle={result.handle} t={t} />
+                  <WhatsappMatch handle={result.handle} t={t} onFailed={setCheckFailed} />
                 )}
               </div>
             )}
@@ -331,24 +337,37 @@ export default function VerifyPage() {
                  A green pass for zero comparisons is worse than nothing:
                  it reassures a buyer who verified absolutely nothing. */}
             {usableChecks > 0 && (
-              <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: "1rem", border: "1px solid var(--border)" }}>
-                <div style={{ background: "#F0FDF4", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--stamp-teal)", margin: "0 0 4px" }}>
-                    {verdictLabel}
-                  </p>
-                  <p style={{ fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.6, margin: 0 }}>
-                    ✅ {t("verdictPass", { handle: result.handle })}
-                  </p>
-                </div>
-                <div style={{ background: "#FFF5F5", padding: "1rem 1.25rem" }}>
-                  <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "#B3261E", margin: "0 0 4px" }}>
-                    {t("verdictFailLabel")}
+              checkFailed ? (
+                /* A check ran and came back wrong. There is no longer a
+                   question to answer — the page states the outcome. */
+                <div style={{ borderRadius: 12, marginBottom: "1rem", border: "2px solid #B3261E", background: "#FFF5F5", padding: "1.25rem 1.5rem" }}>
+                  <p style={{ fontSize: "0.92rem", fontWeight: 700, color: "#B3261E", margin: "0 0 6px" }}>
+                    🚨 {t("verdictFailedTitle")}
                   </p>
                   <p style={{ fontSize: "0.85rem", color: "#B3261E", lineHeight: 1.6, margin: 0 }}>
-                    🚨 {t("verdictFail", { handle: result.handle })}
+                    {t("verdictFailedBody", { handle: result.handle })}
                   </p>
                 </div>
-              </div>
+              ) : (
+                <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: "1rem", border: "1px solid var(--border)" }}>
+                  <div style={{ background: "#F0FDF4", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+                    <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--stamp-teal)", margin: "0 0 4px" }}>
+                      {verdictLabel}
+                    </p>
+                    <p style={{ fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.6, margin: 0 }}>
+                      ✅ {t("verdictPass", { handle: result.handle })}
+                    </p>
+                  </div>
+                  <div style={{ background: "#FFF5F5", padding: "1rem 1.25rem" }}>
+                    <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "#B3261E", margin: "0 0 4px" }}>
+                      {t("verdictFailLabel")}
+                    </p>
+                    <p style={{ fontSize: "0.85rem", color: "#B3261E", lineHeight: 1.6, margin: 0 }}>
+                      🚨 {t("verdictFail", { handle: result.handle })}
+                    </p>
+                  </div>
+                </div>
+              )
             )}
 
             {/* ---- BIO ---- */}
@@ -540,7 +559,7 @@ export default function VerifyPage() {
 // browser — there is nothing here to scrape.
 // ============================================================
 
-function WhatsappMatch({ handle, t }) {
+function WhatsappMatch({ handle, t, onFailed }) {
   const [number, setNumber] = useState("");
   const [checking, setChecking] = useState(false);
   const [outcome, setOutcome] = useState(null);
@@ -557,7 +576,13 @@ function WhatsappMatch({ handle, t }) {
       if (data.invalidNumber) setOutcome("invalid");
       else if (data.rateLimited) setOutcome("limited");
       else if (data.notAvailable) setOutcome("unavailable");
-      else setOutcome(data.matched ? "match" : "nomatch");
+      else {
+        setOutcome(data.matched ? "match" : "nomatch");
+        // Tell the page. A mismatch pulls the green verdict entirely —
+        // there is no "but the other checks passed" when the number
+        // they were given belongs to someone else.
+        onFailed?.(!data.matched);
+      }
 
       if (typeof data.remaining === "number") setRemaining(data.remaining);
     } catch {
