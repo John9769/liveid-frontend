@@ -110,14 +110,18 @@ export default function VerifyPage() {
 
   const hasSocials = socials.length > 0;
   const hasPhotoOnFile = result?.hasPhoto === true;
+  const photoLocked = result?.photoLocked === true;
   const showWhatsappCheck = result?.whatsappCheckAvailable === true;
   const showWhatsappNumber = !!result?.whatsapp;
   const hasWhatsappCheck = showWhatsappCheck || showWhatsappNumber;
 
-  // Only the checks actually rendered are counted. A page that cannot
-  // offer a face check must never claim three.
-  const totalChecks =
-    (hasPhotoOnFile ? 1 : 0) + (hasSocials ? 1 : 0) + (hasWhatsappCheck ? 1 : 0);
+  // A check the owner registered is not the same as a check THIS visitor
+  // can perform. A members-only photo exists on file but is useless to an
+  // anonymous buyer — the page must never count it as available to them,
+  // and must never award a verdict for a comparison nobody could make.
+  const faceUsable = hasPhotoOnFile && !photoLocked;
+  const usableChecks =
+    (faceUsable ? 1 : 0) + (hasSocials ? 1 : 0) + (hasWhatsappCheck ? 1 : 0);
 
   let n = 0;
   const numFace = hasPhotoOnFile ? ++n : null;
@@ -129,8 +133,8 @@ export default function VerifyPage() {
     d ? new Date(d).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : "—";
 
   const verdictLabel =
-    totalChecks >= 3 ? t("verdictAll", { count: totalChecks })
-      : totalChecks === 2 ? t("verdictBoth")
+    usableChecks >= 3 ? t("verdictAll", { count: usableChecks })
+      : usableChecks === 2 ? t("verdictBoth")
       : t("verdictOne");
 
   return (
@@ -148,7 +152,7 @@ export default function VerifyPage() {
           <div>
 
             {/* ---- WELCOME ---- */}
-            <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ marginBottom: "1.25rem" }}>
               <p className="font-mono" style={{ fontSize: "0.7rem", letterSpacing: "0.14em", color: "var(--stamp-teal)", textTransform: "uppercase", marginBottom: 8 }}>
                 {t("welcomeLabel")}
               </p>
@@ -161,19 +165,41 @@ export default function VerifyPage() {
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.65, margin: 0 }}>
                 {t("welcomeBody")}
               </p>
-              <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, lineHeight: 1.65, margin: "10px 0 0" }}>
-                {t("welcomeInstruction")}
-              </p>
+              {usableChecks > 0 && (
+                <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, lineHeight: 1.65, margin: "10px 0 0" }}>
+                  {t("welcomeInstruction")}
+                </p>
+              )}
             </div>
 
-            {/* ---- NO CHECKS AVAILABLE ---- */}
-            {totalChecks === 0 && (
-              <div style={{ background: "#FFF5F5", border: "1px solid #B3261E", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
-                <p style={{ fontSize: "0.85rem", color: "#B3261E", fontWeight: 700, margin: "0 0 6px" }}>
-                  ⚠ {t("cannotConfirmTitle")}
+            {/* ---- LIMITED VERIFICATION BAND ----
+                 Fires when this visitor cannot perform a single check.
+                 Says plainly what is missing and what to do about it,
+                 instead of leaving a page that looks fine but proves
+                 nothing. */}
+            {usableChecks === 0 && (
+              <div style={{ background: "#FFF8E1", border: "1px solid #F59E0B", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "1.25rem" }}>
+                <p style={{ fontSize: "0.92rem", color: "#92400E", fontWeight: 700, margin: "0 0 8px" }}>
+                  ⚠ {t("limitedTitle")}
                 </p>
-                <p style={{ fontSize: "0.82rem", color: "#B3261E", lineHeight: 1.65, margin: 0 }}>
-                  {t("cannotConfirmBody")}
+                <p style={{ fontSize: "0.85rem", color: "#92400E", lineHeight: 1.65, margin: "0 0 12px" }}>
+                  {t("limitedIntro", { handle: result.handle })}
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                  <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.5, margin: 0 }}>
+                    {photoLocked ? `🔒 ${t("limitedFaceLocked")}` : `✗ ${t("limitedFaceNone")}`}
+                  </p>
+                  <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.5, margin: 0 }}>
+                    ✗ {t("limitedSocialNone")}
+                  </p>
+                  <p style={{ fontSize: "0.82rem", color: "#92400E", lineHeight: 1.5, margin: 0 }}>
+                    ✗ {t("limitedWhatsappNone")}
+                  </p>
+                </div>
+
+                <p style={{ fontSize: "0.85rem", color: "#92400E", fontWeight: 700, lineHeight: 1.6, margin: 0 }}>
+                  {t("limitedAction", { handle: result.handle })}
                 </p>
               </div>
             )}
@@ -197,14 +223,14 @@ export default function VerifyPage() {
                     backgroundColor: result.photoUrl ? "transparent" : "var(--mist)",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    border: `2px solid ${result.photoLocked ? "var(--border)" : "var(--stamp-teal)"}`,
+                    border: `2px solid ${photoLocked ? "var(--border)" : "var(--stamp-teal)"}`,
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "1.6rem",
                   }}>
-                    {result.photoLocked ? "🔒" : null}
+                    {photoLocked ? "🔒" : null}
                   </div>
 
                   <div style={{ minWidth: 0 }}>
@@ -226,10 +252,20 @@ export default function VerifyPage() {
                   </div>
                 </div>
 
-                {result.photoLocked ? (
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "12px 0 0" }}>
-                    🔒 {t("checkFaceLocked")}
-                  </p>
+                {photoLocked ? (
+                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                    <p style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600, margin: "0 0 4px" }}>
+                      🔒 {t("faceProtectedTitle")}
+                    </p>
+                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 12px" }}>
+                      {t("faceProtectedBody", { handle: result.handle })}
+                    </p>
+                    <a href={`/${locale}/login`} style={{ display: "block", textAlign: "center", background: "var(--trust-blue)", color: "white", padding: "11px", borderRadius: 8, fontWeight: 600, fontSize: "0.9rem", textDecoration: "none" }}>{t("faceLoginButton")}</a>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", textAlign: "center", lineHeight: 1.6, margin: "10px 0 0" }}>
+                      {t("faceNoAccount")}{" "}
+                      <a href={`/${locale}/register`} style={{ color: "var(--trust-blue)", fontWeight: 600, textDecoration: "none" }}>{t("faceGetYours")}</a>
+                    </p>
+                  </div>
                 ) : (
                   <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.6, margin: "12px 0 0" }}>
                     {t("checkFaceBody", { handle: result.handle })}
@@ -290,9 +326,12 @@ export default function VerifyPage() {
               </div>
             )}
 
-            {/* ---- VERDICT ---- */}
-            {totalChecks > 0 && (
-              <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: "1.5rem", border: "1px solid var(--border)" }}>
+            {/* ---- VERDICT ----
+                 Only when this visitor could actually perform a check.
+                 A green pass for zero comparisons is worse than nothing:
+                 it reassures a buyer who verified absolutely nothing. */}
+            {usableChecks > 0 && (
+              <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: "1rem", border: "1px solid var(--border)" }}>
                 <div style={{ background: "#F0FDF4", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
                   <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--stamp-teal)", margin: "0 0 4px" }}>
                     {verdictLabel}
@@ -403,7 +442,7 @@ export default function VerifyPage() {
 
             {/* ---- SECURITY SEAL ---- */}
             {result.handleHash && (
-              <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "white" }}>
+              <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1rem", background: "white" }}>
                 <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>
                   {t("securitySeal")}
                 </p>
@@ -415,6 +454,28 @@ export default function VerifyPage() {
                 </p>
               </div>
             )}
+
+            {/* ---- WHAT LIVEID VERIFIES ----
+                 The page reports what the owner registered. It does not
+                 vouch for the truth of what they typed. Stated plainly so
+                 no visitor can claim the page promised more than it did. */}
+            <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "1rem 1.25rem", marginBottom: "1.5rem", background: "var(--mist)" }}>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--ink)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>
+                {t("scopeTitle")}
+              </p>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.65, margin: "0 0 6px" }}>
+                ✓ {t("scopeDoes1")}
+              </p>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.65, margin: "0 0 6px" }}>
+                ✓ {t("scopeDoes2")}
+              </p>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.65, margin: "0 0 10px" }}>
+                ✗ {t("scopeNot1")}
+              </p>
+              <p style={{ fontSize: "0.78rem", color: "var(--ink)", fontWeight: 600, lineHeight: 1.65, margin: 0 }}>
+                {t("scopeDecision")}
+              </p>
+            </div>
 
             {/* ---- REFERRAL CTA ---- */}
             {result.isReferral && result.referralCode && (
