@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Navbar from "../../../components/Navbar";
 
 const SECTIONS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12"];
 
 export default function TermsPage() {
   const t = useTranslations("Terms");
+  const locale = useLocale();
   const router = useRouter();
 
   return (
@@ -21,7 +22,7 @@ export default function TermsPage() {
             // a click straight from the consent checkbox in a new window.
             // Fall back to the landing page so the button always does
             // something.
-            if (window.history.length > 1) router.back();
+            if (typeof window !== "undefined" && window.history.length > 1) router.back();
             else router.push(`/${locale}`);
           }}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", padding: 0, marginBottom: "1.5rem" }}
